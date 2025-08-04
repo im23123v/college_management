@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
-// Types
 interface Role {
   _id: string;
   name: string;
@@ -30,18 +29,16 @@ interface User {
 }
 
 export default function AddUser() {
-  const [mode, setMode] = useState<"create" | "edit" | "delete">("create");
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
+  const [search, setSearch] = useState("");
 
   const [roles, setRoles] = useState<Role[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [search, setSearch] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,37 +71,45 @@ export default function AddUser() {
       return;
     }
 
-    const userData = { name, email, password, role: roleId, department: departmentId };
-    console.log("User Submitted:", userData);
+    const newUser: User = {
+      _id: selectedUserId ?? Date.now().toString(),
+      name,
+      email,
+      role: roleId,
+      department: departmentId,
+    };
 
-    if (mode === "edit" && selectedUserId) {
+    if (selectedUserId) {
+      // Update existing user
+      setUsers((prev) =>
+        prev.map((u) => (u._id === selectedUserId ? newUser : u))
+      );
       Alert.alert("Success", "User updated successfully!");
     } else {
+      setUsers((prev) => [...prev, newUser]);
       Alert.alert("Success", "User created successfully!");
     }
 
+    // Clear form
     setName("");
     setEmail("");
     setPassword("");
     setRoleId("");
     setDepartmentId("");
     setSelectedUserId(null);
-    setMode("create");
-    
   };
 
   const handleEditUserSelect = (user: User) => {
     setSelectedUserId(user._id);
     setName(user.name);
     setEmail(user.email);
-    setPassword(""); // Not showing password
+    setPassword(""); // Not shown
     setRoleId(user.role);
     setDepartmentId(user.department || "");
-    setMode("edit");
   };
 
   const handleDeleteUser = (id: string) => {
-    Alert.alert("Confirm", "Are you sure to delete this user?", [
+    Alert.alert("Confirm", "Are you sure you want to delete this user?", [
       { text: "Cancel" },
       {
         text: "Delete",
@@ -115,110 +120,112 @@ export default function AddUser() {
         },
       },
     ]);
-    
   };
 
   const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const renderForm = () => (
-    <>
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.heading}>Add / Edit User</Text>
+
       <Text style={styles.label}>Name</Text>
-      <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Enter name" />
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder="Enter name"
+      />
 
       <Text style={styles.label}>Email</Text>
-      <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Enter email" keyboardType="email-address" />
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Enter email"
+        keyboardType="email-address"
+      />
 
-    
+      <Text style={styles.label}>Password</Text>
+      <TextInput
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Enter password"
+        secureTextEntry
+      />
 
       <Text style={styles.label}>Role</Text>
       <View style={styles.pickerWrapper}>
-        <Picker selectedValue={roleId} onValueChange={setRoleId} style={styles.picker}>
+        <Picker
+          selectedValue={roleId}
+          onValueChange={setRoleId}
+          style={styles.picker}
+        >
           <Picker.Item label="Select Role" value="" />
-          {roles.map((role) => <Picker.Item key={role._id} label={role.name} value={role._id} />)}
+          {roles.map((role) => (
+            <Picker.Item key={role._id} label={role.name} value={role._id} />
+          ))}
         </Picker>
       </View>
 
       <Text style={styles.label}>Department (optional)</Text>
       <View style={styles.pickerWrapper}>
-        <Picker selectedValue={departmentId} onValueChange={setDepartmentId} style={styles.picker}>
+        <Picker
+          selectedValue={departmentId}
+          onValueChange={setDepartmentId}
+          style={styles.picker}
+        >
           <Picker.Item label="Select Department" value="" />
-          {departments.map((dept) => <Picker.Item key={dept._id} label={dept.name} value={dept._id} />)}
+          {departments.map((dept) => (
+            <Picker.Item key={dept._id} label={dept.name} value={dept._id} />
+          ))}
         </Picker>
       </View>
 
       <View style={styles.btn}>
-        <Button title={mode === "edit" ? "Update User" : "Create User"} onPress={handleAddUser} />
+        <Button
+          title={selectedUserId ? "Update User" : "Create User"}
+          onPress={handleAddUser}
+        />
       </View>
-    </>
-    
-  );
 
-  const renderEditList = () => (
-    <FlatList
-      data={users}
-      keyExtractor={(item) => item._id}
-      renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => handleEditUserSelect(item)} style={styles.listItem}>
-          <Text>{item.name} - {item.email}</Text>
-        </TouchableOpacity>
-      )}
-    />
-  );
+      <Text style={[styles.heading, { marginTop: 30 }]}>User List</Text>
 
-  const renderDeleteList = () => (
-    <>
       <TextInput
         style={styles.input}
         value={search}
         onChangeText={setSearch}
         placeholder="Search users"
       />
+
       <FlatList
         data={filteredUsers}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.listItemRow}>
-            <Text>{item.name}</Text>
-            <Button title="Delete" color="red" onPress={() => handleDeleteUser(item._id)} />
+            <View>
+              <Text style={styles.userInfo}>{item.name}</Text>
+              <Text style={styles.userEmail}>{item.email}</Text>
+            </View>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.editBtn]}
+                onPress={() => handleEditUserSelect(item)}
+              >
+                <Text style={styles.btnText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.deleteBtn]}
+                onPress={() => handleDeleteUser(item._id)}
+              >
+                <Text style={styles.btnText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
-    </>
-  );
-
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Mode Switch Buttons */}
-      <View style={styles.modeSwitch}>
-        {["create", "edit", "delete"].map((m) => (
-          <TouchableOpacity 
-            key={m} 
-          onPress={() => {
-        setMode(m as any);
-        if (m !== "edit") {
-          setSelectedUserId(null);
-          setName("");
-          setEmail("");
-          setPassword("");
-          setRoleId("");
-          setDepartmentId("");
-        }
-      }}
-
-            style={[styles.modeBtn, mode === m && styles.selectedModeBtn]}>
-          <Text style={mode === m ? styles.activeTabText : styles.tabText}>
-          {m.toUpperCase()}
-          </Text>
-
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {mode === "create" || (mode === "edit" && selectedUserId) ? renderForm() : null}
-      {mode === "edit" && !selectedUserId ? renderEditList() : null}
-      {mode === "delete" ? renderDeleteList() : null}
     </ScrollView>
   );
 }
@@ -227,6 +234,12 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 60,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
   },
   label: {
     marginTop: 10,
@@ -254,37 +267,6 @@ const styles = StyleSheet.create({
   btn: {
     marginTop: 20,
   },
- modeSwitch: {
-  flexDirection: "row",
-  justifyContent: "space-around",
-  backgroundColor: "#eee",
-  paddingVertical: 10,
-  borderRadius: 10,
-  marginBottom: 20,
-},
-modeBtn: {
-  paddingVertical: 10,
-  paddingHorizontal: 20,
-  borderRadius: 20,
-},
-selectedModeBtn: {
-  backgroundColor: "#007bff",
-},
-tabText: {
-  color: "#333",
-  fontWeight: "500",
-},
-activeTabText: {
-  color: "#fff",
-  fontWeight: "bold",
-},
-
-  listItem: {
-    padding: 12,
-    backgroundColor: "#f2f2f2",
-    marginVertical: 5,
-    borderRadius: 6,
-  },
   listItemRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -293,5 +275,31 @@ activeTabText: {
     backgroundColor: "#f9f9f9",
     marginVertical: 5,
     borderRadius: 6,
+  },
+  userInfo: {
+    fontWeight: "600",
+  },
+  userEmail: {
+    fontSize: 12,
+    color: "#555",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  editBtn: {
+    backgroundColor: "#007bff",
+  },
+  deleteBtn: {
+    backgroundColor: "#dc3545",
+  },
+  btnText: {
+    color: "#fff",
+    fontWeight: "500",
   },
 });

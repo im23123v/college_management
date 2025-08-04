@@ -6,21 +6,26 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Alert,
 } from 'react-native';
-import { Checkbox } from 'react-native-paper';
+import { Checkbox, IconButton } from 'react-native-paper';
 
 interface Role {
   _id: string;
   name: string;
+  canViewRoles: string[];
+  canModifyRoles: string[];
+  canDeleteRoles: string[];
 }
 
-const dummyRoles: Role[] = [
-  { _id: '1', name: 'Admin' },
-  { _id: '2', name: 'Manager' },
-  { _id: '3', name: 'Editor' },
+const initialDummyRoles: Role[] = [
+  { _id: '1', name: 'Admin', canViewRoles: [], canModifyRoles: [], canDeleteRoles: [] },
+  { _id: '2', name: 'Manager', canViewRoles: [], canModifyRoles: [], canDeleteRoles: [] },
+  { _id: '3', name: 'Editor', canViewRoles: [], canModifyRoles: [], canDeleteRoles: [] },
 ];
 
 const CreateRole: React.FC = () => {
+  const [roles, setRoles] = useState<Role[]>(initialDummyRoles);
   const [roleName, setRoleName] = useState('');
   const [canViewRoles, setCanViewRoles] = useState<string[]>([]);
   const [canModifyRoles, setCanModifyRoles] = useState<string[]>([]);
@@ -28,6 +33,9 @@ const CreateRole: React.FC = () => {
   const [showViewDropdown, setShowViewDropdown] = useState(false);
   const [showModifyDropdown, setShowModifyDropdown] = useState(false);
   const [showDeleteDropdown, setShowDeleteDropdown] = useState(false);
+
+  const [editMode, setEditMode] = useState(false);
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
 
   const togglePermission = (
     roleId: string,
@@ -39,17 +47,7 @@ const CreateRole: React.FC = () => {
     );
   };
 
-  const handleSubmit = () => {
-    if (!roleName.trim()) return;
-    const newRole = {
-      name: roleName.trim(),
-      canViewRoles,
-      canModifyRoles,
-      canDeleteRoles,
-    };
-    console.log('Created Role:', newRole);
-
-    // Reset
+  const resetForm = () => {
     setRoleName('');
     setCanViewRoles([]);
     setCanModifyRoles([]);
@@ -57,6 +55,52 @@ const CreateRole: React.FC = () => {
     setShowViewDropdown(false);
     setShowModifyDropdown(false);
     setShowDeleteDropdown(false);
+    setEditMode(false);
+    setEditingRoleId(null);
+  };
+
+  const handleSubmit = () => {
+    if (!roleName.trim()) return;
+
+    const newRole: Role = {
+      _id: editingRoleId || (Date.now().toString()),
+      name: roleName.trim(),
+      canViewRoles,
+      canModifyRoles,
+      canDeleteRoles,
+    };
+
+    if (editMode) {
+      setRoles((prev) =>
+        prev.map((r) => (r._id === editingRoleId ? newRole : r))
+      );
+    } else {
+      setRoles((prev) => [...prev, newRole]);
+    }
+
+    resetForm();
+  };
+
+  const handleEdit = (role: Role) => {
+    setEditMode(true);
+    setEditingRoleId(role._id);
+    setRoleName(role.name);
+    setCanViewRoles(role.canViewRoles);
+    setCanModifyRoles(role.canModifyRoles);
+    setCanDeleteRoles(role.canDeleteRoles);
+  };
+
+  const handleDelete = (roleId: string) => {
+    Alert.alert('Delete Role', 'Are you sure you want to delete this role?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          setRoles((prev) => prev.filter((r) => r._id !== roleId));
+        },
+      },
+    ]);
   };
 
   return (
@@ -70,93 +114,63 @@ const CreateRole: React.FC = () => {
       />
 
       <Text style={styles.description}>
-        Select the roles which this new role can view, modify, or delete. This helps control
-        what permissions are granted to each role based on previous ones.
+        Select the roles this role can view, modify, or delete. Helps define access control.
       </Text>
 
-      {/* Can View Roles Dropdown */}
-      <Text style={styles.label}>Can View Roles</Text>
-      <TouchableOpacity
-        style={styles.dropdownHeader}
-        onPress={() => setShowViewDropdown(!showViewDropdown)}
-      >
-        <Text style={{ fontSize: 16 }}>
-          {canViewRoles.length > 0 ? `${canViewRoles.length} selected` : 'Select roles'}
-        </Text>
-        <Text style={{ fontSize: 16 }}>{showViewDropdown ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
-      {showViewDropdown &&
-        (dummyRoles.length === 0 ? (
-          <Text style={styles.emptyNote}>No roles available</Text>
-        ) : (
-          dummyRoles.map((role) => (
-            <View key={role._id} style={styles.listItemRow}>
-              <Text>{role.name}</Text>
-              <Checkbox
-                status={canViewRoles.includes(role._id) ? 'checked' : 'unchecked'}
-                onPress={() => togglePermission(role._id, canViewRoles, setCanViewRoles)}
-              />
-            </View>
-          ))
-        ))}
-
-      {/* Can Modify Roles Dropdown */}
-      <Text style={styles.label}>Can Modify Roles</Text>
-      <TouchableOpacity
-        style={styles.dropdownHeader}
-        onPress={() => setShowModifyDropdown(!showModifyDropdown)}
-      >
-        <Text style={{ fontSize: 16 }}>
-          {canModifyRoles.length > 0 ? `${canModifyRoles.length} selected` : 'Select roles'}
-        </Text>
-        <Text style={{ fontSize: 16 }}>{showModifyDropdown ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
-      {showModifyDropdown &&
-        (dummyRoles.length === 0 ? (
-          <Text style={styles.emptyNote}>No roles available</Text>
-        ) : (
-          dummyRoles.map((role) => (
-            <View key={role._id} style={styles.listItemRow}>
-              <Text>{role.name}</Text>
-              <Checkbox
-                status={canModifyRoles.includes(role._id) ? 'checked' : 'unchecked'}
-                onPress={() => togglePermission(role._id, canModifyRoles, setCanModifyRoles)}
-              />
-            </View>
-          ))
-        ))}
-
-      {/* Can Delete Roles Dropdown */}
-      <Text style={styles.label}>Can Delete Roles</Text>
-      <TouchableOpacity
-        style={styles.dropdownHeader}
-        onPress={() => setShowDeleteDropdown(!showDeleteDropdown)}
-      >
-        <Text style={{ fontSize: 16 }}>
-          {canDeleteRoles.length > 0 ? `${canDeleteRoles.length} selected` : 'Select roles'}
-        </Text>
-        <Text style={{ fontSize: 16 }}>{showDeleteDropdown ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
-      {showDeleteDropdown &&
-        (dummyRoles.length === 0 ? (
-          <Text style={styles.emptyNote}>No roles available</Text>
-        ) : (
-          dummyRoles.map((role) => (
-            <View key={role._id} style={styles.listItemRow}>
-              <Text>{role.name}</Text>
-              <Checkbox
-                status={canDeleteRoles.includes(role._id) ? 'checked' : 'unchecked'}
-                onPress={() => togglePermission(role._id, canDeleteRoles, setCanDeleteRoles)}
-              />
-            </View>
-          ))
-        ))}
+      {/* Permission Dropdowns */}
+      {[ 
+        { title: 'Can View Roles', show: showViewDropdown, toggle: setShowViewDropdown, list: canViewRoles, setList: setCanViewRoles },
+        { title: 'Can Modify Roles', show: showModifyDropdown, toggle: setShowModifyDropdown, list: canModifyRoles, setList: setCanModifyRoles },
+        { title: 'Can Delete Roles', show: showDeleteDropdown, toggle: setShowDeleteDropdown, list: canDeleteRoles, setList: setCanDeleteRoles }
+      ].map(({ title, show, toggle, list, setList }) => (
+        <View key={title}>
+          <Text style={styles.label}>{title}</Text>
+          <TouchableOpacity style={styles.dropdownHeader} onPress={() => toggle(!show)}>
+            <Text>{list.length > 0 ? `${list.length} selected` : 'Select roles'}</Text>
+            <Text>{show ? '▲' : '▼'}</Text>
+          </TouchableOpacity>
+          {show &&
+            (roles.length === 0 ? (
+              <Text style={styles.emptyNote}>No roles available</Text>
+            ) : (
+              roles.map((role) => (
+                <View key={role._id} style={styles.listItemRow}>
+                  <Text>{role.name}</Text>
+                  <Checkbox
+                    status={list.includes(role._id) ? 'checked' : 'unchecked'}
+                    onPress={() => togglePermission(role._id, list, setList)}
+                  />
+                </View>
+              ))
+            ))}
+        </View>
+      ))}
 
       <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
         <View style={[styles.modeBtn, styles.selectedModeBtn]}>
-          <Text style={styles.activeTabText}>Create Role</Text>
+          <Text style={styles.activeTabText}>
+            {editMode ? 'Update Role' : 'Create Role'}
+          </Text>
         </View>
       </TouchableOpacity>
+
+      <View style={styles.divider} />
+
+      {/* Existing Roles Display */}
+      <Text style={styles.label}>Existing Roles</Text>
+      {roles.map((role) => (
+        <View key={role._id} style={styles.roleCard}>
+          <Text style={styles.roleName}>{role.name}</Text>
+          <View style={styles.actionRow}>
+            <TouchableOpacity onPress={() => handleEdit(role)}>
+              <Text style={styles.editBtn}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDelete(role._id)}>
+              <Text style={styles.deleteBtn}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
     </ScrollView>
   );
 };
@@ -170,6 +184,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 4,
     fontWeight: '600',
+    fontSize: 16,
   },
   input: {
     height: 40,
@@ -184,10 +199,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 14,
   },
-  emptyNote: {
-    color: 'gray',
-    marginVertical: 6,
-  },
   dropdownHeader: {
     borderColor: 'gray',
     borderWidth: 1,
@@ -197,6 +208,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 6,
+  },
+  listItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    marginVertical: 5,
+    borderRadius: 6,
   },
   btn: {
     marginTop: 20,
@@ -210,23 +230,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#007bff',
     alignItems: 'center',
   },
-  tabText: {
-    color: '#333',
-    fontWeight: '500',
-  },
   activeTabText: {
     color: '#fff',
     fontWeight: 'bold',
   },
-  listItemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    marginVertical: 5,
-    borderRadius: 6,
+  divider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 20,
   },
+  roleCard: {
+    backgroundColor: '#f1f1f1',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+  },
+  roleName: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  editBtn: {
+    marginRight: 16,
+    color: '#007bff',
+    fontWeight: '500',
+  },
+  deleteBtn: {
+    color: '#d9534f',
+    fontWeight: '500',
+  },
+  emptyNote:{
+    
+  }
 });
 
 export default CreateRole;
