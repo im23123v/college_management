@@ -8,10 +8,12 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function Login() {
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
+  const [userId, setUserId] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const router = useRouter();
 
   const handleLogin = () => {
     if (!userId || !password) {
@@ -19,7 +21,6 @@ export default function Login() {
       return;
     }
     Alert.alert('Success', `Logged in as ${userId}`);
-    
   };
 
   return (
@@ -46,6 +47,22 @@ export default function Login() {
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+
+        {/* Developer button */}
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: '#27ae60', marginTop: 15 }]}
+          onPress={() => router.push('/developer')}
+        >
+          <Text style={styles.buttonText}>Login as Developer</Text>
+        </TouchableOpacity>
+
+        {/* Admin button */}
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: '#8e44ad', marginTop: 10 }]}
+          onPress={() => router.push('/admin')}
+        >
+          <Text style={styles.buttonText}>Login as Admin</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

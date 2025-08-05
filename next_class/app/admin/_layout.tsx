@@ -12,11 +12,12 @@ export default function AdminLayout() {
       }}
     >
       <Drawer.Screen name="index" options={{ title: "Admin Home" }} />
-      <Drawer.Screen name="add-role" options={{ title: "Add Role" }} />
-      <Drawer.Screen name="add-user" options={{ title: "Add User" }} />
-      <Drawer.Screen name="add-department" options={{ title: "Add Department" }} />
-      <Drawer.Screen name="add-course" options={{ title: "Add Course" }} />
-      <Drawer.Screen name="add-leave" options={{ title: "Add Leave" }} />
+      <Drawer.Screen name="add-role" options={{ title: " Roles" }} />
+      <Drawer.Screen name="add-user" options={{ title: "Users" }} />
+      <Drawer.Screen name="add-department" options={{ title: "Departments" }} />
+      <Drawer.Screen name="add-course" options={{ title: "Courses" }} />
+      <Drawer.Screen name="add-leave" options={{ title: "Leave" }} />
+      <Drawer.Screen name="add-batch" options={{ title: "Batch" }} />
     </Drawer>
   );
 }

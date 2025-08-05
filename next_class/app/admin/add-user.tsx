@@ -128,7 +128,7 @@ export default function AddUser() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Add / Edit User</Text>
+      <Text style={styles.heading}>User Form</Text>
 
       <Text style={styles.label}>Name</Text>
       <TextInput
@@ -145,15 +145,6 @@ export default function AddUser() {
         onChangeText={setEmail}
         placeholder="Enter email"
         keyboardType="email-address"
-      />
-
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Enter password"
-        secureTextEntry
       />
 
       <Text style={styles.label}>Role</Text>
