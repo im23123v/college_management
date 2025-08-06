@@ -25,3 +25,45 @@ exports.getAllRoles = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+// UPDATE Role
+exports.updateRole = async (req, res) => {
+  try {
+    const roleId = req.params.id;
+    const { name, canAddRoles = [], canViewRoles = [], canDeleteRoles = [] } = req.body;
+
+    const updatedRole = await roleQueries.updateRoleById(roleId, {
+      name,
+      canAddRoles,
+      canViewRoles,
+      canDeleteRoles,
+    });
+
+    if (!updatedRole) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+
+    res.json({ message: 'Role updated successfully', role: updatedRole });
+  } catch (err) {
+    console.error('Error updating role:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// DELETE Role
+exports.deleteRole = async (req, res) => {
+  try {
+    const roleId = req.params.id;
+
+    const deleted = await roleQueries.deleteRoleById(roleId);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+
+    res.json({ message: 'Role deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting role:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

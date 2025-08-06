@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,14 +18,8 @@ interface Role {
   canDeleteRoles: string[];
 }
 
-const initialDummyRoles: Role[] = [
-  { _id: '1', name: 'Admin', canViewRoles: [], canModifyRoles: [], canDeleteRoles: [] },
-  { _id: '2', name: 'Manager', canViewRoles: [], canModifyRoles: [], canDeleteRoles: [] },
-  { _id: '3', name: 'Editor', canViewRoles: [], canModifyRoles: [], canDeleteRoles: [] },
-];
-
 const CreateRole: React.FC = () => {
-  const [roles, setRoles] = useState<Role[]>(initialDummyRoles);
+  
   const [roleName, setRoleName] = useState('');
   const [canViewRoles, setCanViewRoles] = useState<string[]>([]);
   const [canModifyRoles, setCanModifyRoles] = useState<string[]>([]);
@@ -58,50 +52,105 @@ const CreateRole: React.FC = () => {
     setEditMode(false);
     setEditingRoleId(null);
   };
+const [roles, setRoles] = useState<Role[]>([]);
 
-  const handleSubmit = () => {
-    if (!roleName.trim()) return;
+useEffect(() => {
+  const fetchRoles = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/roles');
+      const data = await response.json();
+      setRoles(data);
+    } catch (err) {
+      console.error('Failed to fetch roles', err);
+    }
+  };
 
-    const newRole: Role = {
-      _id: editingRoleId || (Date.now().toString()),
-      name: roleName.trim(),
-      canViewRoles,
-      canModifyRoles,
-      canDeleteRoles,
-    };
+  fetchRoles();
+}, []);
+
+const handleSubmit = async () => {
+  if (!roleName.trim()) return;
+
+ const roleData = {
+  name: roleName.trim(),
+  canAddRoles: canModifyRoles, // map modify to add
+  canViewRoles,
+  canDeleteRoles,
+};
+
+  try {
+    const method = editMode ? 'PUT' : 'POST';
+    const url = editMode
+      ? `http://localhost:5000/api/roles/${editingRoleId}`
+      : 'http://localhost:5000/api/roles';
+
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(roleData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || 'Failed to submit role');
+      return;
+    }
 
     if (editMode) {
       setRoles((prev) =>
-        prev.map((r) => (r._id === editingRoleId ? newRole : r))
+        prev.map((r) => (r._id === editingRoleId ? { ...r, ...roleData } : r))
       );
     } else {
-      setRoles((prev) => [...prev, newRole]);
+      setRoles((prev) => [...prev, data.role]);
     }
 
     resetForm();
-  };
+  } catch (error) {
+    console.error('Error submitting role:', error);
+    alert('Server error while submitting role');
+  }
+};
 
-  const handleEdit = (role: Role) => {
-    setEditMode(true);
-    setEditingRoleId(role._id);
-    setRoleName(role.name);
-    setCanViewRoles(role.canViewRoles);
-    setCanModifyRoles(role.canModifyRoles);
-    setCanDeleteRoles(role.canDeleteRoles);
-  };
+  const handleDelete = async (roleId: string) => {
+  Alert.alert('Delete Role', 'Are you sure you want to delete this role?', [
+    { text: 'Cancel', style: 'cancel' },
+    {
+      text: 'Delete',
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/api/roles/${roleId}`, {
+            method: 'DELETE',
+          });
 
-  const handleDelete = (roleId: string) => {
-    Alert.alert('Delete Role', 'Are you sure you want to delete this role?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
+          if (!response.ok) {
+            const data = await response.json();
+            alert(data.message || 'Failed to delete');
+            return;
+          }
+
           setRoles((prev) => prev.filter((r) => r._id !== roleId));
-        },
+        } catch (error) {
+          console.error('Delete error:', error);
+          alert('Server error while deleting');
+        }
       },
-    ]);
-  };
+    },
+  ]);
+};
+
+
+const handleEdit = (role: Role) => {
+  setEditMode(true);
+  setEditingRoleId(role._id);
+  setRoleName(role.name);
+  setCanViewRoles(role.canViewRoles);
+  setCanModifyRoles(role.canModifyRoles); // treated as canAddRoles on backend
+  setCanDeleteRoles(role.canDeleteRoles);
+};
+
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -264,7 +313,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   emptyNote:{
-    
+     color: '#999',
+  fontStyle: 'italic',
+  marginBottom: 10,
   }
 });
 

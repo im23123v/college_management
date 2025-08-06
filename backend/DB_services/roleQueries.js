@@ -12,3 +12,13 @@ exports.createRole = async (roleData) => {
 exports.getAllRoles = async () => {
   return await Role.find().select('_id name');
 };
+
+
+exports.updateRoleById = async (id, updatedData) => {
+  return await Role.findByIdAndUpdate(id, updatedData, { new: true });
+};
+
+
+exports.deleteRoleById = async (id) => {
+  return await Role.findByIdAndDelete(id);
+};

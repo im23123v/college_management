@@ -36,8 +36,6 @@ const handleLogin = async () => {
       Alert.alert('Login Failed', data.message || 'Invalid credentials');
       return;
     }
-
-    // Navigate based on role
     switch (data.role) {
       case 'developer':
         router.push('/developer');
