@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
-
+const adminRoutes = require('./routes/adminRoutes');
+const developerRoutes = require('./routes/developerRoutes');
 
 
 
@@ -36,7 +37,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/yourDB', {
 .then(() => console.log('✅ Connected to MongoDB'))
 .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-
+app.use('/admin', adminRoutes);
+app.use('/developer', developerRoutes);
 
 app.get('/', (req, res) => {
   res.send('🚀 Backend server is running!');

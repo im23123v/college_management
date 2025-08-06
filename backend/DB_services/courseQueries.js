@@ -1,14 +1,9 @@
-const Course = require('../models/course.model');
+const Course = require('../models/course');
 
 exports.createCourse = async (courseData) => {
   return await Course.create(courseData);
 };
 
-exports.getCoursesByDepartment = async (departmentId) => {
-  return await Course.find({ departmentId });
+exports.getCoursesByDepartment = async (deptId) => {
+  return await Course.find({ departmentId: deptId });
 };
-
-exports.getAllCourses = async () => {
-  return await Course.find({});
-};
-

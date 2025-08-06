@@ -3,10 +3,12 @@ const router = express.Router();
 
 // Import controllers from separate files
 const roleController = require('../controllers/adminControler/rolecontroll');
-const userController = require('../admincontroller/usercontroll');
-const departmentController = require('../admincontroller/departmentcontroll');
-const courseController = require('../admincontroller/coursecontroll');
-const leaveController = require('../admincontroller/leavecontroll');
+const userController = require('../controllers/adminControler/usercontroll');
+const departmentController = require('../controllers/adminControler/departmentcontroll');
+const courseController = require('../controllers/adminControler/coursecontroll');
+const leaveController = require('../controllers/adminControler/leavecontroll');
+const subjectController = require('../controllers/adminControler/subjectControll');
+const batchController = require('../controllers/adminControler/batchcontroll');
 
 
 // ---- ROLES ----
@@ -29,5 +31,21 @@ router.get('/courses/:code', courseController.getCourse);
 router.post('/leave-types', leaveController.addLeaveType);
 router.get('/leave-types', leaveController.getLeaveTypes);
 router.get('/leave-types/role/:role', leaveController.getLeaveTypesByRole);
+
+// subjects
+router.post('/create', subjectController.createSubject);
+router.get('/', subjectController.getAllSubjects);
+router.get('/:id', subjectController.getSubjectById);
+router.put('/:id', subjectController.updateSubject);
+router.delete('/:id', subjectController.deleteSubject);
+
+
+// batch
+
+router.post('/batches', batchController.createBatch);
+router.get('/batches', batchController.getAllBatches);
+router.get('/batches/:id', batchController.getBatchById);
+router.put('/batches/:id', batchController.updateBatch);
+router.delete('/batches/:id', batchController.deleteBatch);
 
 module.exports = router;
