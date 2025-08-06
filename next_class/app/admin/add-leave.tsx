@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Alert,
 } from 'react-native';
 
 type LeaveType = {
@@ -24,6 +25,7 @@ export default function AdminLeaveSetup() {
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [leaveName, setLeaveName] = useState('');
   const [isPaid, setIsPaid] = useState(false);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
 
   const [allocations, setAllocations] = useState<{ [role: string]: number }>(() => {
     const initial: { [key: string]: number } = {};
@@ -41,31 +43,80 @@ export default function AdminLeaveSetup() {
     }
   };
 
-  const handleAddLeaveType = () => {
-    if (leaveName) {
-      const newLeave: LeaveType = {
-        name: leaveName,
-        isPaid,
-        allocations: roleList.map((role) => ({
-          role,
-          count: allocations[role],
-        })),
-      };
-      setLeaveTypes([...leaveTypes, newLeave]);
-      setLeaveName('');
-      setIsPaid(false);
-      const reset: { [key: string]: number } = {};
-      roleList.forEach((role) => (reset[role] = 0));
-      setAllocations(reset);
+  const resetForm = () => {
+    setLeaveName('');
+    setIsPaid(false);
+    setEditIndex(null);
+    const reset: { [key: string]: number } = {};
+    roleList.forEach((role) => (reset[role] = 0));
+    setAllocations(reset);
+  };
+
+  const handleAddOrUpdateLeaveType = () => {
+    if (!leaveName.trim()) {
+      Alert.alert('Validation', 'Leave name cannot be empty.');
+      return;
     }
+
+    const newLeave: LeaveType = {
+      name: leaveName.trim(),
+      isPaid,
+      allocations: roleList.map((role) => ({
+        role,
+        count: allocations[role],
+      })),
+    };
+
+    if (editIndex !== null) {
+      const updated = [...leaveTypes];
+      updated[editIndex] = newLeave;
+      setLeaveTypes(updated);
+    } else {
+      setLeaveTypes([...leaveTypes, newLeave]);
+    }
+
+    resetForm();
+  };
+
+  const handleEdit = (index: number) => {
+    const selected = leaveTypes[index];
+    setLeaveName(selected.name);
+    setIsPaid(selected.isPaid);
+    const newAllocations: { [key: string]: number } = {};
+    selected.allocations.forEach((a) => {
+      newAllocations[a.role] = a.count;
+    });
+    setAllocations(newAllocations);
+    setEditIndex(index);
+  };
+
+  const handleDelete = (index: number) => {
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this leave type?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            const updated = [...leaveTypes];
+            updated.splice(index, 1);
+            setLeaveTypes(updated);
+            resetForm();
+          },
+        },
+      ]
+    );
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.heading}>Create Leave Type</Text>
+      <Text style={styles.heading}>
+        {editIndex !== null ? 'Edit Leave Type' : 'Create Leave Type'}
+      </Text>
       <Text style={styles.description}>
-        Fill the leave name (e.g., "Sick Leave", "Casual Leave"), choose whether this leave cuts salary, 
-        and assign number of leaves to each role using the plus (+) and minus (−) buttons.
+        Fill the leave name, toggle whether it's paid, and assign leave count to each role.
       </Text>
 
       <TextInput
@@ -103,11 +154,14 @@ export default function AdminLeaveSetup() {
         </View>
       ))}
 
-      <TouchableOpacity style={styles.buttonPrimary} onPress={handleAddLeaveType}>
-        <Text style={styles.buttonText}>Save Leave Type</Text>
+      <TouchableOpacity style={styles.buttonPrimary} onPress={handleAddOrUpdateLeaveType}>
+        <Text style={styles.buttonText}>
+          {editIndex !== null ? 'Update Leave Type' : 'Save Leave Type'}
+        </Text>
       </TouchableOpacity>
 
       <Text style={styles.heading}>Defined Leave Types</Text>
+
       {leaveTypes.map((lt, idx) => (
         <View key={idx} style={styles.leaveCard}>
           <Text style={styles.leaveTitle}>
@@ -118,6 +172,20 @@ export default function AdminLeaveSetup() {
               {alloc.role} - {alloc.count} leaves
             </Text>
           ))}
+          <View style={{ flexDirection: 'row', marginTop: 10 }}>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: '#28a745' }]}
+              onPress={() => handleEdit(idx)}
+            >
+              <Text style={styles.buttonText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: '#dc3545' }]}
+              onPress={() => handleDelete(idx)}
+            >
+              <Text style={styles.buttonText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ))}
     </ScrollView>
@@ -200,6 +268,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginVertical: 16,
     alignItems: 'center',
+  },
+  actionButton: {
+    padding: 10,
+    borderRadius: 6,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 10,
   },
   buttonText: {
     color: '#fff',

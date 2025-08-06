@@ -21,6 +21,18 @@ type SemesterGroup = {
   }[];
 };
 
+type Batch = {
+  id: string;
+  course: string;
+  department: string;
+  fromDate: Date | null;
+  toDate: Date | null;
+  hasSemester: boolean;
+  semestersPerYear: number;
+  semesterData: SemesterGroup[];
+};
+
+
 const semesterOptions = [1, 2, 3, 4];
 
 export default function BatchPage() {
@@ -105,6 +117,65 @@ export default function BatchPage() {
 
     setMainDatePicker(null);
   };
+
+
+   const [batches, setBatches] = useState<Batch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+
+  const handleSaveBatch = () => {
+    if (!course || !department || !fromDate || !toDate) {
+      alert('Please fill all required fields.');
+      return;
+    }
+
+    const newBatch: Batch = {
+      id: selectedBatchId ?? Date.now().toString(),
+      course,
+      department,
+      fromDate,
+      toDate,
+      hasSemester,
+      semestersPerYear,
+      semesterData,
+    };
+
+    if (selectedBatchId) {
+      setBatches((prev) =>
+        prev.map((b) => (b.id === selectedBatchId ? newBatch : b))
+      );
+      alert('Batch updated successfully!');
+    } else {
+      setBatches((prev) => [...prev, newBatch]);
+      alert('Batch created successfully!');
+    }
+
+    // Reset form
+    setCourse('');
+    setDepartment('');
+    setFromDate(null);
+    setToDate(null);
+    setHasSemester(false);
+    setSemestersPerYear(1);
+    setSemesterData([]);
+    setSelectedBatchId(null);
+  };
+
+  const handleEditBatch = (batch: Batch) => {
+    setSelectedBatchId(batch.id);
+    setCourse(batch.course);
+    setDepartment(batch.department);
+    setFromDate(batch.fromDate);
+    setToDate(batch.toDate);
+    setHasSemester(batch.hasSemester);
+    setSemestersPerYear(batch.semestersPerYear);
+    setSemesterData(batch.semesterData);
+  };
+
+  const handleDeleteBatch = (id: string) => {
+    setBatches((prev) => prev.filter((b) => b.id !== id));
+    alert('Batch deleted successfully!');
+  };
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -216,6 +287,9 @@ export default function BatchPage() {
               ))}
             </View>
           ))}
+
+
+          
         </>
       )}
 
@@ -239,6 +313,43 @@ export default function BatchPage() {
           }}
         />
       )}
+
+       <TouchableOpacity
+        style={styles.saveButton}
+        onPress={handleSaveBatch}
+      >
+        <Text style={styles.saveButtonText}>
+          {selectedBatchId ? 'Update Batch' : 'Create Batch'}
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={styles.label}>Saved Batches</Text>
+      {batches.map((batch) => (
+        <View key={batch.id} style={styles.listItemRow}>
+          <View>
+            <Text style={styles.batchTitle}>{batch.course}</Text>
+            <Text style={styles.batchSubtitle}>{batch.department}</Text>
+            <Text style={styles.batchSubtitle}>
+              {batch.fromDate?.toDateString()} - {batch.toDate?.toDateString()}
+            </Text>
+          </View>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.editBtn]}
+              onPress={() => handleEditBatch(batch)}
+            >
+              <Text style={styles.btnText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.deleteBtn]}
+              onPress={() => handleDeleteBatch(batch.id)}
+            >
+              <Text style={styles.btnText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+    
     </ScrollView>
   );
 }
@@ -286,5 +397,52 @@ const styles = StyleSheet.create({
   },
   dateText: {
     color: '#333',
+  },
+   saveButton: {
+    marginTop: 20,
+    backgroundColor: '#007bff',
+    padding: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  listItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    marginVertical: 5,
+    borderRadius: 6,
+  },
+  batchTitle: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  batchSubtitle: {
+    fontSize: 12,
+    color: '#555',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  editBtn: {
+    backgroundColor: '#007bff',
+  },
+  deleteBtn: {
+    backgroundColor: '#dc3545',
+  },
+  btnText: {
+    color: '#fff',
+    fontWeight: '500',
   },
 });
