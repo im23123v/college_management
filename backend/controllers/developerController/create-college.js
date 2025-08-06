@@ -1,7 +1,8 @@
 const { generatePassword } = require('../utils/passwordGenerator');
 const { sendEmail } = require('../utils/emailService');
-const User = require('../models/User');
+
 const bcrypt = require('bcryptjs');
+const userQueries = require('../../DB_services/userQueries');
 
 const {
   createCollegeInDB,
@@ -9,12 +10,18 @@ const {
   getAllColleges,
 } = require('../queries/collegeQueries');
 
+
+
+function generateRandom(length = 8) {
+  return Math.random().toString(36).slice(2, 2 + length);
+}
+
 exports.createCollege = async (req, res) => {
-  const { name, email } = req.body;
+  const { collegeName, adminName, email } = req.body;
 
   try {
     // Generate college code
-    const code = name.substring(0, 3).toUpperCase();
+    const code = collegename.substring(0, 3).toUpperCase();
 
     // Check if code exists
     const existingCollege = await findCollegeByCode(code);
@@ -29,15 +36,20 @@ exports.createCollege = async (req, res) => {
     // Create college
     const college = await createCollegeInDB(name, code, email);
 
+    const userId = generateRandom(6);
+    const role = 'college-admin';
+    const department = 'all';
+
     // Create user
-    const user = await User.create({
-      userId: `admin_${Date.now()}`,
-      name: `${name} Admin`,
-      email,
-      password: hashedPassword,
-      role: 'college-admin', // Assuming this is a fixed string and not an ObjectId
-      department: null,
-    });
+     const user = await userQueries.createUser({
+          userId,
+          adminName,
+          email,
+          plainPassword,
+          role,
+          department,
+        });
+    
 
     // Send email
     await sendEmail(email, 'Your College Admin Credentials', `

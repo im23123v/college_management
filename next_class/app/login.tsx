@@ -15,13 +15,49 @@ export default function Login() {
   const [password, setPassword] = useState<string>('');
   const router = useRouter();
 
-  const handleLogin = () => {
-    if (!userId || !password) {
-      Alert.alert('Error', 'Please enter both User ID and Password');
+const handleLogin = async () => {
+  if (!userId || !password) {
+    Alert.alert('Error', 'Please enter both User ID and Password');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://<your-backend-url>/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      Alert.alert('Login Failed', data.message || 'Invalid credentials');
       return;
     }
-    Alert.alert('Success', `Logged in as ${userId}`);
-  };
+
+    // Navigate based on role
+    switch (data.role) {
+      case 'developer':
+        router.push('/developer');
+        break;
+      case 'admin':
+        router.push('/admin');
+        break;
+      case 'college-admin':
+        router.push('/admin');
+        break;
+      default:
+        Alert.alert('Error', 'Unknown role');
+        break;
+    }
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Error', 'Something went wrong. Please try again.');
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

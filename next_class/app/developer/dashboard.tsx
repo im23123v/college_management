@@ -1,62 +1,79 @@
-import { useState } from 'react';
-import { View, TextInput, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState, useEffect } from 'react';
+import {
+  View,
+  TextInput,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 
-
-const collegesList = [
-  { id: 'C001', name: 'Oxford College' },
-  { id: 'C002', name: 'Cambridge Institute' },
-  { id: 'C003', name: 'MIT University' },
-   { id: 'C001', name: 'Oxford College' },
-  { id: 'C002', name: 'Cambridge Institute' },
-  { id: 'C003', name: 'MIT University' },
-   { id: 'C001', name: 'Oxford College' },
-  { id: 'C002', name: 'Cambridge Institute' },
-  { id: 'C003', name: 'MIT University' },
-   { id: 'C001', name: 'Oxford College' },
-  { id: 'C002', name: 'Cambridge Institute' },
-  { id: 'C003', name: 'MIT University' },
-   { id: 'C001', name: 'Oxford College' },
-  { id: 'C002', name: 'Cambridge Institute' },
-  { id: 'C003', name: 'MIT University' },
-   { id: 'C001', name: 'Oxford College' },
-  { id: 'C002', name: 'Cambridge Institute' },
-  { id: 'C003', name: 'MIT University' },
-];
+interface College {
+  _id: string;
+  name: string;
+  code: string;
+  adminEmail: string;
+}
 
 export default function Dashboard() {
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState<string>('');
+  const [collegesList, setCollegesList] = useState<College[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchColleges = async () => {
+      try {
+        const response = await axios.get<College[]>('http://localhost:5000/api/developer/colleges'); 
+        setCollegesList(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching colleges:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchColleges();
+  }, []);
 
   const filteredColleges = searchText
     ? collegesList.filter(college =>
         college.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        college.id.toLowerCase().includes(searchText.toLowerCase())
+        college.code.toLowerCase().includes(searchText.toLowerCase())
       )
     : collegesList;
 
   return (
     <View style={styles.container}>
       <View style={styles.searchWrapper}>
-      <Ionicons name="search" size={24} color="black" />
+        <Ionicons name="search" size={24} color="black" />
         <TextInput
-          placeholder="Search College by Name or ID"
+          placeholder="Search College by Name or Code"
           value={searchText}
           onChangeText={setSearchText}
           style={styles.searchInput}
         />
       </View>
 
-      <FlatList
-        data={filteredColleges}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => router.push('/collegeMainPage')}>
-            <Text style={styles.collegeName}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={filteredColleges}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <TouchableOpacity>
+              <Text style={styles.collegeName}>
+                {item.name} ({item.code})
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -65,7 +82,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    alignItems: 'center', // center search bar horizontally
+    alignItems: 'center',
   },
   searchWrapper: {
     flexDirection: 'row',
@@ -76,15 +93,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     width: '90%',
   },
-  icon: {
-    marginRight: 8,
-  },
   searchInput: {
     flex: 1,
-    height: 30,
-    borderColor:'black',
-    borderWidth:2,
-    borderRadius:10,
+    height: 40,
+    marginLeft: 10,
+    paddingHorizontal: 10,
+    backgroundColor: 'white',
+    borderRadius: 8,
   },
   collegeName: {
     padding: 12,

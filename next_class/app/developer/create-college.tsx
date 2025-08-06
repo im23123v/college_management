@@ -4,19 +4,27 @@ import { useState } from 'react';
 export default function CreateCollege() {
   const [collegeName, setCollegeName] = useState('');
   const [email, setEmail] = useState('');
+  const [adminName, setAdminName] = useState(''); // <-- NEW
 
   const handleCreate = async () => {
     try {
-      const res = await fetch('http://<your-backend-url>/developer/colleges', {
+      const res = await fetch('http://localhost:5000/developer/colleges', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: collegeName, email }),
+        body: JSON.stringify({
+          collegeName: collegeName,
+          email,
+          adminName, // <-- NEW FIELD
+        }),
       });
 
       const data = await res.json();
       alert(data.message || 'College Created');
+
+      // Reset all fields
       setCollegeName('');
       setEmail('');
+      setAdminName('');
     } catch (err) {
       alert('Error creating college');
     }
@@ -30,6 +38,13 @@ export default function CreateCollege() {
         placeholder="Enter college name"
         value={collegeName}
         onChangeText={setCollegeName}
+        style={{ borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 10, borderRadius: 5 }}
+      />
+
+      <TextInput
+        placeholder="Enter admin name"
+        value={adminName}
+        onChangeText={setAdminName}
         style={{ borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 10, borderRadius: 5 }}
       />
 
