@@ -1,217 +1,150 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
-  Switch,
   TouchableOpacity,
+  FlatList,
   StyleSheet,
-  ScrollView,
   Alert,
 } from 'react-native';
+import axios from 'axios';
 
-type LeaveType = {
+interface LeaveType {
+  _id?: string;
   name: string;
-  isPaid: boolean;
-  allocations: {
-    role: string;
-    count: number;
-  }[];
-};
+  description: string;
+}
 
-export default function AdminLeaveSetup() {
-  const roleList = ['Admin', 'Teacher', 'Student', 'HR'];
-
+const LeaveTypeScreen = () => {
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
-  const [leaveName, setLeaveName] = useState('');
-  const [isPaid, setIsPaid] = useState(false);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [allocations, setAllocations] = useState<{ [role: string]: number }>(() => {
-    const initial: { [key: string]: number } = {};
-    roleList.forEach((role) => (initial[role] = 0));
-    return initial;
-  });
+  const API_URL = 'http://localhost:5000/admin/leave-types';
 
-  const incrementLeave = (role: string) => {
-    setAllocations({ ...allocations, [role]: allocations[role] + 1 });
-  };
-
-  const decrementLeave = (role: string) => {
-    if (allocations[role] > 0) {
-      setAllocations({ ...allocations, [role]: allocations[role] - 1 });
+  const fetchLeaveTypes = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setLeaveTypes(res.data);
+    } catch (error) {
+      console.error('Failed to fetch leave types', error);
     }
   };
 
-  const resetForm = () => {
-    setLeaveName('');
-    setIsPaid(false);
-    setEditIndex(null);
-    const reset: { [key: string]: number } = {};
-    roleList.forEach((role) => (reset[role] = 0));
-    setAllocations(reset);
-  };
+  useEffect(() => {
+    fetchLeaveTypes();
+  }, []);
 
-  const handleAddOrUpdateLeaveType = () => {
-    if (!leaveName.trim()) {
-      Alert.alert('Validation', 'Leave name cannot be empty.');
+  const handleAddOrEdit = async () => {
+    if (!name.trim()) {
+      Alert.alert('Validation', 'Leave type name is required.');
       return;
     }
 
-    const newLeave: LeaveType = {
-      name: leaveName.trim(),
-      isPaid,
-      allocations: roleList.map((role) => ({
-        role,
-        count: allocations[role],
-      })),
-    };
+    try {
+      if (editingId) {
+        // Edit existing
+        await axios.put(`${API_URL}/${editingId}`, { name, description });
+        Alert.alert('Success', 'Leave type updated.');
+      } else {
+        // Add new
+        await axios.post(API_URL, { name, description });
+        Alert.alert('Success', 'Leave type added.');
+      }
 
-    if (editIndex !== null) {
-      const updated = [...leaveTypes];
-      updated[editIndex] = newLeave;
-      setLeaveTypes(updated);
-    } else {
-      setLeaveTypes([...leaveTypes, newLeave]);
+      setName('');
+      setDescription('');
+      setEditingId(null);
+      fetchLeaveTypes();
+    } catch (error) {
+      console.error('Error saving leave type', error);
     }
-
-    resetForm();
   };
 
-  const handleEdit = (index: number) => {
-    const selected = leaveTypes[index];
-    setLeaveName(selected.name);
-    setIsPaid(selected.isPaid);
-    const newAllocations: { [key: string]: number } = {};
-    selected.allocations.forEach((a) => {
-      newAllocations[a.role] = a.count;
-    });
-    setAllocations(newAllocations);
-    setEditIndex(index);
+  const handleEdit = (type: LeaveType) => {
+    setName(type.name);
+    setDescription(type.description);
+    setEditingId(type._id || null);
   };
 
-  const handleDelete = (index: number) => {
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this leave type?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            const updated = [...leaveTypes];
-            updated.splice(index, 1);
-            setLeaveTypes(updated);
-            resetForm();
-          },
+  const handleDelete = async (id?: string) => {
+    if (!id) return;
+
+    Alert.alert('Confirm Delete', 'Are you sure you want to delete this leave type?', [
+      { text: 'Cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await axios.delete(`${API_URL}/${id}`);
+            Alert.alert('Deleted', 'Leave type deleted.');
+            fetchLeaveTypes();
+          } catch (error) {
+            console.error('Delete error', error);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.heading}>
-        {editIndex !== null ? 'Edit Leave Type' : 'Create Leave Type'}
-      </Text>
-      <Text style={styles.description}>
-        Fill the leave name, toggle whether it's paid, and assign leave count to each role.
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Leave Type</Text>
 
       <TextInput
+        placeholder="Enter Leave Type Name"
+        value={name}
+        onChangeText={setName}
         style={styles.input}
-        placeholder="Leave Name"
-        value={leaveName}
-        onChangeText={setLeaveName}
       />
 
-      <View style={styles.switchContainer}>
-        <Text style={styles.label}>Cutting Money?</Text>
-        <Switch value={isPaid} onValueChange={setIsPaid} />
-      </View>
+      <TextInput
+        placeholder="Enter Description"
+        value={description}
+        onChangeText={setDescription}
+        style={styles.input}
+      />
 
-      <Text style={styles.subHeading}>Assign Leaves to Roles</Text>
-
-      {roleList.map((role, index) => (
-        <View key={index} style={styles.roleRow}>
-          <Text style={styles.roleName}>{role}</Text>
-          <View style={styles.counter}>
-            <TouchableOpacity
-              style={styles.counterButton}
-              onPress={() => decrementLeave(role)}
-            >
-              <Text style={styles.counterText}>−</Text>
-            </TouchableOpacity>
-            <Text style={styles.countText}>{allocations[role]}</Text>
-            <TouchableOpacity
-              style={styles.counterButton}
-              onPress={() => incrementLeave(role)}
-            >
-              <Text style={styles.counterText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-
-      <TouchableOpacity style={styles.buttonPrimary} onPress={handleAddOrUpdateLeaveType}>
-        <Text style={styles.buttonText}>
-          {editIndex !== null ? 'Update Leave Type' : 'Save Leave Type'}
-        </Text>
+      <TouchableOpacity onPress={handleAddOrEdit} style={styles.button}>
+        <Text style={styles.buttonText}>{editingId ? 'Update' : 'Add'}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.heading}>Defined Leave Types</Text>
-
-      {leaveTypes.map((lt, idx) => (
-        <View key={idx} style={styles.leaveCard}>
-          <Text style={styles.leaveTitle}>
-            {lt.name} ({lt.isPaid ? 'Paid (cuts money)' : 'Free'})
-          </Text>
-          {lt.allocations.map((alloc, i) => (
-            <Text key={i} style={styles.allocationText}>
-              {alloc.role} - {alloc.count} leaves
-            </Text>
-          ))}
-          <View style={{ flexDirection: 'row', marginTop: 10 }}>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#28a745' }]}
-              onPress={() => handleEdit(idx)}
-            >
-              <Text style={styles.buttonText}>Edit</Text>
+      <FlatList
+        data={leaveTypes}
+        keyExtractor={(item) => item._id!}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text>{item.description}</Text>
+            </View>
+            <TouchableOpacity onPress={() => handleEdit(item)} style={styles.actionButton}>
+              <Text>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#dc3545' }]}
-              onPress={() => handleDelete(idx)}
-            >
-              <Text style={styles.buttonText}>Delete</Text>
+            <TouchableOpacity onPress={() => handleDelete(item._id)} style={styles.actionButton}>
+              <Text>Delete</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      ))}
-    </ScrollView>
+        )}
+      />
+    </View>
   );
-}
+};
+
+export default LeaveTypeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    marginTop: 40,
+    flex: 1,
+    padding: 20,
   },
-  heading: {
-    fontSize: 20,
+  title: {
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 16,
-  },
-  subHeading: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 15,
   },
   input: {
     borderWidth: 1,
@@ -220,79 +153,29 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 6,
   },
-  switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  label: {
-    marginRight: 10,
-    fontSize: 16,
-  },
-  roleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderColor: '#ddd',
-    paddingBottom: 6,
-  },
-  roleName: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  counter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  counterButton: {
-    backgroundColor: '#ccc',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-  counterText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  countText: {
-    fontSize: 16,
-    minWidth: 24,
-    textAlign: 'center',
-  },
-  buttonPrimary: {
-    backgroundColor: '#007bff',
-    padding: 10,
+  button: {
+    backgroundColor: '#1976d2',
+    padding: 12,
     borderRadius: 6,
-    marginVertical: 16,
-    alignItems: 'center',
-  },
-  actionButton: {
-    padding: 10,
-    borderRadius: 6,
-    flex: 1,
-    alignItems: 'center',
-    marginRight: 10,
+    marginBottom: 20,
   },
   buttonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    textAlign: 'center',
   },
-  allocationText: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  leaveCard: {
+  item: {
+    flexDirection: 'row',
+    padding: 12,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 6,
     marginBottom: 10,
+    alignItems: 'center',
   },
-  leaveTitle: {
+  name: {
     fontWeight: 'bold',
-    marginBottom: 4,
+  },
+  actionButton: {
+    marginLeft: 10,
   },
 });

@@ -38,6 +38,8 @@ router.get('/courses/by-department/:departmentId', courseController.getCoursesBy
 router.post('/leave-types', leaveController.addLeaveType);
 router.get('/leave-types', leaveController.getLeaveTypes);
 router.get('/leave-types/role/:role', leaveController.getLeaveTypesByRole);
+router.put('/leave-types/:id', leaveController.updateLeaveType);
+router.delete('/leave-types/:id', leaveController.deleteLeaveType);
 
 // subjects
 router.post('/create', subjectController.createSubject);

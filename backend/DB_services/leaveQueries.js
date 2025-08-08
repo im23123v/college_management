@@ -1,22 +1,28 @@
-const LeaveType = require('../../models/LeaveType');
+const LeaveType = require('../models/LeaveType');
 
-// Add a new leave type
-const createLeaveType = async (data) => {
+// Create
+exports.createLeaveType = async (data) => {
   return await LeaveType.create(data);
 };
 
-// Get all leave types
-const getAllLeaveTypes = async () => {
-  return await LeaveType.find();
+// Read - All
+exports.getAllLeaveTypes = async () => {
+  return await LeaveType.find().sort({ createdAt: -1 });
 };
 
-// Optional: Get leave types by role
-const getLeaveTypesByRole = async (roleName) => {
-  return await LeaveType.find({ 'allocations.role': roleName });
+// Read - By Role
+exports.getLeaveTypesByRole = async (role) => {
+  return await LeaveType.find({
+    allocations: { $elemMatch: { role } }
+  });
 };
 
-module.exports = {
-  createLeaveType,
-  getAllLeaveTypes,
-  getLeaveTypesByRole,
+// Update
+exports.updateLeaveTypeById = async (id, updateData) => {
+  return await LeaveType.findByIdAndUpdate(id, updateData, { new: true });
+};
+
+// Delete
+exports.deleteLeaveTypeById = async (id) => {
+  return await LeaveType.findByIdAndDelete(id);
 };

@@ -1,7 +1,9 @@
 const {
   createLeaveType,
   getAllLeaveTypes,
-  getLeaveTypesByRole
+  getLeaveTypesByRole,
+  updateLeaveTypeById,
+  deleteLeaveTypeById,
 } = require('../queries/leaveQueries');
 
 // Create a leave type
@@ -26,7 +28,7 @@ exports.getLeaveTypes = async (req, res) => {
   }
 };
 
-// Optional: Get leave types by role
+// Get leave types by role
 exports.getLeaveTypesByRole = async (req, res) => {
   try {
     const role = req.params.role;
@@ -34,6 +36,32 @@ exports.getLeaveTypesByRole = async (req, res) => {
     res.status(200).json(leaves);
   } catch (err) {
     console.error('Error fetching leave types by role:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+// Update leave type
+exports.updateLeaveType = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updated = await updateLeaveTypeById(id, req.body);
+    if (!updated) return res.status(404).json({ message: 'Leave type not found' });
+    res.status(200).json({ message: 'Leave type updated', leave: updated });
+  } catch (err) {
+    console.error('Error updating leave type:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+// Delete leave type
+exports.deleteLeaveType = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await deleteLeaveTypeById(id);
+    if (!deleted) return res.status(404).json({ message: 'Leave type not found' });
+    res.status(200).json({ message: 'Leave type deleted' });
+  } catch (err) {
+    console.error('Error deleting leave type:', err);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
