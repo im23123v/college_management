@@ -1,4 +1,4 @@
-import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
 
@@ -7,34 +7,52 @@ interface Department {
   name: string;
 }
 
+interface Course {
+  _id: string;
+  courseName: string;
+  description: string;
+  departmentId: string;
+}
+
 export default function AddCourse() {
   const [courseName, setCourseName] = useState('');
   const [description, setDescription] = useState('');
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedDept, setSelectedDept] = useState('');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [existingCourses, setExistingCourses] = useState<string[]>([]);
-   
 
-  useEffect(()=>{
-     const d = [
-    { _id: 'CSE', name: 'Computer Science' },
-    { _id: 'ECE', name: 'Electronics' },
-    { _id: 'ME', name: 'Mechanical' },
-  ];
-setDepartments(d);
-  },[])
-  // Fetch departments on mount
+  const API_BASE = 'http://localhost:5000';
+
+  // Fetch departments
   useEffect(() => {
-    fetch('http://your-backend-url/api/departments')
+    fetch(`${API_BASE}/api/departments`)
       .then(res => res.json())
       .then(data => setDepartments(data))
       .catch(err => console.error('Error fetching departments:', err));
   }, []);
 
-  // Check if department is already used in any courses
+  // Fetch all courses
+  const fetchCourses = () => {
+    fetch(`${API_BASE}/admin/courses`)
+      .then(res => res.json())
+      .then(data => setCourses(data))
+      .catch(err => console.error('Error fetching courses:', err));
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const handleDeptChange = (deptId: string) => {
+    setSelectedDept(deptId);
+    checkDepartment(deptId);
+  };
+
   const checkDepartment = async (deptId: string) => {
     try {
-      const res = await fetch(`http://your-backend-url/api/courses/by-department/${deptId}`);
+      const res = await fetch(`${API_BASE}/admin/courses/by-department/${deptId}`);
       const data = await res.json();
       if (data.length > 0) {
         setExistingCourses(data.map((course: any) => course.courseName));
@@ -46,37 +64,74 @@ setDepartments(d);
     }
   };
 
-  const handleDeptChange = (deptId: string) => {
-    setSelectedDept(deptId);
-    checkDepartment(deptId);
-  };
-
-  const handleAddCourse = async () => {
-    const course = {
+  const handleSubmit = async () => {
+    const courseData = {
       courseName,
       description,
       departmentId: selectedDept,
     };
 
+    const url = editingId
+      ? `${API_BASE}/admin/courses/${editingId}`
+      : `${API_BASE}/admin/courses`;
+    const method = editingId ? 'PUT' : 'POST';
+
     try {
-      const res = await fetch('http://your-backend-url/api/courses', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(course),
+        body: JSON.stringify(courseData),
       });
+
       const data = await res.json();
-      Alert.alert('Success', 'Course added successfully!');
+
+      Alert.alert('Success', editingId ? 'Course updated!' : 'Course added!');
       setCourseName('');
       setDescription('');
       setSelectedDept('');
+      setEditingId(null);
       setExistingCourses([]);
+      fetchCourses();
     } catch (err) {
-      console.error('Error adding course:', err);
+      console.error('Error saving course:', err);
     }
   };
 
+  const handleEdit = (course: Course) => {
+    setEditingId(course._id);
+    setCourseName(course.courseName);
+    setDescription(course.description);
+    setSelectedDept(course.departmentId);
+    checkDepartment(course.departmentId);
+  };
+
+  const handleDelete = async (id: string) => {
+    Alert.alert('Confirm', 'Are you sure you want to delete this course?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        onPress: async () => {
+          try {
+            await fetch(`${API_BASE}/admin/courses/${id}`, {
+              method: 'DELETE',
+            });
+            Alert.alert('Deleted', 'Course deleted successfully!');
+            fetchCourses();
+          } catch (err) {
+            console.error('Error deleting course:', err);
+          }
+        },
+      },
+    ]);
+  };
+
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>{editingId ? 'Edit Course' : 'Add Course'}</Text>
+
       <Text>Course Name</Text>
       <TextInput style={styles.input} value={courseName} onChangeText={setCourseName} />
 
@@ -95,15 +150,26 @@ setDepartments(d);
         ))}
       </Picker>
 
-      
       {existingCourses.length > 0 && (
         <Text style={styles.warningText}>
-           This department is already used in courses: {existingCourses.join(', ')}
+          This department already has courses: {existingCourses.join(', ')}
         </Text>
       )}
 
-      <Button title="Add Course" onPress={handleAddCourse} />
-    </View>
+      <Button title={editingId ? 'Update Course' : 'Add Course'} onPress={handleSubmit} />
+
+      <Text style={styles.subHeader}>Existing Courses</Text>
+      {courses.map(course => (
+        <View key={course._id} style={styles.courseItem}>
+          <Text style={styles.courseText}>{course.courseName}</Text>
+          <View style={styles.btnRow}>
+            <Button title="Edit" onPress={() => handleEdit(course)} />
+            <View style={{ width: 10 }} />
+            <Button title="Delete" color="red" onPress={() => handleDelete(course._id)} />
+          </View>
+        </View>
+      ))}
+    </ScrollView>
   );
 }
 
@@ -123,5 +189,27 @@ const styles = StyleSheet.create({
   warningText: {
     color: 'red',
     marginBottom: 10,
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  subHeader: {
+    marginTop: 25,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  courseItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  courseText: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  btnRow: {
+    flexDirection: 'row',
   },
 });

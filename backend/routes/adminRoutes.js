@@ -28,9 +28,11 @@ router.get('/departments', departmentController.getAllDepartments);
 
 // ---- COURSES ----
 router.post('/courses', courseController.addCourse);
-router.get('/courses', courseController.getCourses);
-router.get('/courses/:code', courseController.getCourse);
-
+router.get('/courses', courseController.getAllCourses);
+router.get('/courses/:id', courseController.getCourse); // optional
+router.put('/courses/:id', courseController.updateCourse);
+router.delete('/courses/:id', courseController.deleteCourse);
+router.get('/courses/by-department/:departmentId', courseController.getCoursesByDept);
 // ---- LEAVE TYPES ----
 router.post('/leave-types', leaveController.addLeaveType);
 router.get('/leave-types', leaveController.getLeaveTypes);
