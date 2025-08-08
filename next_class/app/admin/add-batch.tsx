@@ -8,6 +8,7 @@ import {
   ScrollView,
   Switch,
   Platform,
+  Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -25,13 +26,12 @@ type Batch = {
   id: string;
   course: string;
   department: string;
-  fromDate: Date | null;
-  toDate: Date | null;
+  fromDate: string; // backend sends date as string
+  toDate: string;
   hasSemester: boolean;
   semestersPerYear: number;
   semesterData: SemesterGroup[];
 };
-
 
 const semesterOptions = [1, 2, 3, 4];
 
@@ -40,40 +40,32 @@ export default function BatchPage() {
   const [department, setDepartment] = useState('');
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
-  const [showPicker, setShowPicker] = useState<{
-    yearIndex: number;
-    semIndex: number;
-    field: 'from' | 'to';
-  } | null>(null);
-  const [mainDatePicker, setMainDatePicker] = useState<'from' | 'to' | null>(null);
-
   const [hasSemester, setHasSemester] = useState(false);
   const [semestersPerYear, setSemestersPerYear] = useState(1);
   const [semesterData, setSemesterData] = useState<SemesterGroup[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+
+  const BASE_URL = 'http://localhost:5000/api/batches';
 
   const calculateYears = () => {
     if (!fromDate || !toDate) return 0;
-    const start = new Date(fromDate);
-    const end = new Date(toDate);
-    return end.getFullYear() - start.getFullYear() + 1;
+    return toDate.getFullYear() - fromDate.getFullYear() + 1;
   };
 
   const generateSemesterStructure = (years: number, semPerYear: number) => {
-    const totalSemesters = semPerYear * years;
-    let semesterCounter = 1;
     const newData: SemesterGroup[] = [];
+    let semesterCounter = 1;
 
     for (let year = 1; year <= years; year++) {
-      const semesters = [];
-      for (let s = 0; s < semPerYear; s++) {
-        semesters.push({
-          semester: semesterCounter++,
-          from: null,
-          to: null,
-        });
-      }
+      const semesters = Array.from({ length: semPerYear }).map(() => ({
+        semester: semesterCounter++,
+        from: null,
+        to: null,
+      }));
       newData.push({ year, semesters });
     }
+
     setSemesterData(newData);
   };
 
@@ -91,65 +83,41 @@ export default function BatchPage() {
     regenerateSemesters();
   }, [fromDate, toDate, semestersPerYear, hasSemester]);
 
+  const fetchBatches = async () => {
+    try {
+      const res = await fetch(BASE_URL);
+      const data = await res.json();
+      setBatches(data);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to fetch batches');
+    }
+  };
+
+  useEffect(() => {
+    fetchBatches();
+  }, []);
+
   const updateSemesterDate = (
     yearIndex: number,
     semIndex: number,
     field: 'from' | 'to',
     value: Date
   ) => {
-    const updated = [...semesterData];
-    updated[yearIndex].semesters[semIndex][field] = value;
+    const updated = semesterData.map((yearGroup, yIdx) => {
+      if (yIdx !== yearIndex) return yearGroup;
+      return {
+        ...yearGroup,
+        semesters: yearGroup.semesters.map((sem, sIdx) => {
+          if (sIdx !== semIndex) return sem;
+          return { ...sem, [field]: value };
+        }),
+      };
+    });
     setSemesterData(updated);
     setShowPicker(null);
   };
 
-  const handleMainDateChange = (date: Date | undefined) => {
-    if (!date) {
-      setMainDatePicker(null);
-      return;
-    }
-
-    if (mainDatePicker === 'from') {
-      setFromDate(date);
-    } else if (mainDatePicker === 'to') {
-      setToDate(date);
-    }
-
-    setMainDatePicker(null);
-  };
-
-
-   const [batches, setBatches] = useState<Batch[]>([]);
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
-
-  const handleSaveBatch = () => {
-    if (!course || !department || !fromDate || !toDate) {
-      alert('Please fill all required fields.');
-      return;
-    }
-
-    const newBatch: Batch = {
-      id: selectedBatchId ?? Date.now().toString(),
-      course,
-      department,
-      fromDate,
-      toDate,
-      hasSemester,
-      semestersPerYear,
-      semesterData,
-    };
-
-    if (selectedBatchId) {
-      setBatches((prev) =>
-        prev.map((b) => (b.id === selectedBatchId ? newBatch : b))
-      );
-      alert('Batch updated successfully!');
-    } else {
-      setBatches((prev) => [...prev, newBatch]);
-      alert('Batch created successfully!');
-    }
-
-    // Reset form
+  const resetForm = () => {
     setCourse('');
     setDepartment('');
     setFromDate(null);
@@ -160,167 +128,165 @@ export default function BatchPage() {
     setSelectedBatchId(null);
   };
 
+  const handleSaveBatch = async () => {
+    if (!course || !department || !fromDate || !toDate) {
+      Alert.alert('Validation', 'Please fill all required fields.');
+      return;
+    }
+
+    const newBatch = {
+      course,
+      department,
+      fromDate,
+      toDate,
+      hasSemester,
+      semestersPerYear,
+      semesterData,
+    };
+
+    try {
+      let res;
+      if (selectedBatchId) {
+        res = await fetch(`${BASE_URL}/${selectedBatchId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newBatch),
+        });
+        if (!res.ok) throw new Error('Failed to update batch');
+        Alert.alert('Updated', 'Batch updated successfully!');
+      } else {
+        res = await fetch(BASE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newBatch),
+        });
+        if (!res.ok) throw new Error('Failed to create batch');
+        Alert.alert('Created', 'Batch created successfully!');
+      }
+
+      fetchBatches();
+      resetForm();
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    }
+  };
+
   const handleEditBatch = (batch: Batch) => {
     setSelectedBatchId(batch.id);
     setCourse(batch.course);
     setDepartment(batch.department);
-    setFromDate(batch.fromDate);
-    setToDate(batch.toDate);
+    setFromDate(new Date(batch.fromDate));
+    setToDate(new Date(batch.toDate));
     setHasSemester(batch.hasSemester);
     setSemestersPerYear(batch.semestersPerYear);
     setSemesterData(batch.semesterData);
   };
 
-  const handleDeleteBatch = (id: string) => {
-    setBatches((prev) => prev.filter((b) => b.id !== id));
-    alert('Batch deleted successfully!');
+  const handleDeleteBatch = async (id: string) => {
+    try {
+      const res = await fetch(`${BASE_URL}/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete batch');
+      Alert.alert('Deleted', 'Batch deleted successfully');
+      fetchBatches();
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    }
   };
 
+  const [mainDatePicker, setMainDatePicker] = useState<'from' | 'to' | null>(null);
+  const [showPicker, setShowPicker] = useState<{
+    yearIndex: number;
+    semIndex: number;
+    field: 'from' | 'to';
+  } | null>(null);
+
+  const handleMainDateChange = (_event: any, selectedDate?: Date) => {
+    if (mainDatePicker === 'from') {
+      setFromDate(selectedDate || null);
+    } else if (mainDatePicker === 'to') {
+      setToDate(selectedDate || null);
+    }
+    setMainDatePicker(null);
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.label}>Course</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Course"
-        value={course}
-        onChangeText={setCourse}
-      />
+      <TextInput style={styles.input} value={course} onChangeText={setCourse} placeholder="Course" />
 
       <Text style={styles.label}>Department</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Department"
-        value={department}
-        onChangeText={setDepartment}
-      />
+      <TextInput style={styles.input} value={department} onChangeText={setDepartment} placeholder="Department" />
 
       <Text style={styles.label}>From Date</Text>
-      <TouchableOpacity
-        style={styles.dateButton}
-        onPress={() => setMainDatePicker('from')}
-      >
-        <Text style={styles.dateText}>
-          {fromDate ? fromDate.toDateString() : 'Select From Date'}
-        </Text>
+      <TouchableOpacity style={styles.dateButton} onPress={() => setMainDatePicker('from')}>
+        <Text>{fromDate ? fromDate.toDateString() : 'Select Date'}</Text>
       </TouchableOpacity>
 
       <Text style={styles.label}>To Date</Text>
-      <TouchableOpacity
-        style={styles.dateButton}
-        onPress={() => setMainDatePicker('to')}
-      >
-        <Text style={styles.dateText}>
-          {toDate ? toDate.toDateString() : 'Select To Date'}
-        </Text>
+      <TouchableOpacity style={styles.dateButton} onPress={() => setMainDatePicker('to')}>
+        <Text>{toDate ? toDate.toDateString() : 'Select Date'}</Text>
       </TouchableOpacity>
 
       {mainDatePicker && (
         <DateTimePicker
-          value={new Date()}
+          value={fromDate || new Date()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) =>
-            handleMainDateChange(selectedDate || new Date())
-          }
+          onChange={handleMainDateChange}
         />
       )}
 
-      <View style={[styles.row, { marginTop: 16 }]}>
+      <View style={styles.row}>
         <Text style={styles.label}>Has Semester?</Text>
-        <Switch
-          value={hasSemester}
-          onValueChange={(value) => {
-            setHasSemester(value);
-          }}
-        />
+        <Switch value={hasSemester} onValueChange={setHasSemester} />
       </View>
 
       {hasSemester && (
         <>
-          <Text style={styles.label}>Semesters Per Year</Text>
-          <Picker
-            selectedValue={semestersPerYear}
-            onValueChange={(value) => setSemestersPerYear(value)}
-          >
-            {semesterOptions.map((num) => (
-              <Picker.Item label={`${num}`} value={num} key={num} />
+          <Text style={styles.label}>Semesters per Year</Text>
+          <Picker selectedValue={semestersPerYear} onValueChange={(v) => setSemestersPerYear(v)}>
+            {semesterOptions.map((s) => (
+              <Picker.Item label={`${s}`} value={s} key={s} />
             ))}
           </Picker>
 
-          {semesterData.map((yearGroup, yearIndex) => (
-            <View key={yearIndex}>
-              <Text style={[styles.label, { fontSize: 18 }]}>
-                Year {yearGroup.year}
-              </Text>
-
-              {yearGroup.semesters.map((sem, semIndex) => (
-                <View key={semIndex} style={styles.semesterContainer}>
-                  <Text style={styles.semesterTitle}>
-                    Semester {sem.semester}
-                  </Text>
-
-                  <Text>Start Date</Text>
-                  <TouchableOpacity
-                    style={styles.dateButton}
-                    onPress={() =>
-                      setShowPicker({ yearIndex, semIndex, field: 'from' })
-                    }
-                  >
-                    <Text style={styles.dateText}>
-                      {sem.from ? sem.from.toDateString() : 'Select Start Date'}
-                    </Text>
+          {semesterData.map((group, yIdx) => (
+            <View key={yIdx}>
+              <Text style={styles.label}>Year {group.year}</Text>
+              {group.semesters.map((sem, sIdx) => (
+                <View key={sIdx} style={styles.semesterContainer}>
+                  <Text>Semester {sem.semester}</Text>
+                  <Text>From:</Text>
+                  <TouchableOpacity onPress={() => setShowPicker({ yearIndex: yIdx, semIndex: sIdx, field: 'from' })}>
+                    <Text>{sem.from ? sem.from.toDateString() : 'Select Start Date'}</Text>
                   </TouchableOpacity>
-
-                  <Text>End Date</Text>
-                  <TouchableOpacity
-                    style={styles.dateButton}
-                    onPress={() =>
-                      setShowPicker({ yearIndex, semIndex, field: 'to' })
-                    }
-                  >
-                    <Text style={styles.dateText}>
-                      {sem.to ? sem.to.toDateString() : 'Select End Date'}
-                    </Text>
+                  <Text>To:</Text>
+                  <TouchableOpacity onPress={() => setShowPicker({ yearIndex: yIdx, semIndex: sIdx, field: 'to' })}>
+                    <Text>{sem.to ? sem.to.toDateString() : 'Select End Date'}</Text>
                   </TouchableOpacity>
                 </View>
               ))}
             </View>
           ))}
 
-
-          
+          {showPicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(_, selectedDate) => {
+                if (!selectedDate) return setShowPicker(null);
+                updateSemesterDate(showPicker.yearIndex, showPicker.semIndex, showPicker.field, selectedDate);
+              }}
+            />
+          )}
         </>
       )}
 
-      {showPicker && (
-        <DateTimePicker
-          value={new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => {
-            if (!selectedDate) {
-              setShowPicker(null);
-              return;
-            }
-
-            updateSemesterDate(
-              showPicker.yearIndex,
-              showPicker.semIndex,
-              showPicker.field,
-              selectedDate
-            );
-          }}
-        />
-      )}
-
-       <TouchableOpacity
-        style={styles.saveButton}
-        onPress={handleSaveBatch}
-      >
-        <Text style={styles.saveButtonText}>
-          {selectedBatchId ? 'Update Batch' : 'Create Batch'}
-        </Text>
+      <TouchableOpacity style={styles.saveButton} onPress={handleSaveBatch}>
+        <Text style={styles.saveButtonText}>{selectedBatchId ? 'Update Batch' : 'Create Batch'}</Text>
       </TouchableOpacity>
 
       <Text style={styles.label}>Saved Batches</Text>
@@ -328,28 +294,19 @@ export default function BatchPage() {
         <View key={batch.id} style={styles.listItemRow}>
           <View>
             <Text style={styles.batchTitle}>{batch.course}</Text>
-            <Text style={styles.batchSubtitle}>{batch.department}</Text>
-            <Text style={styles.batchSubtitle}>
-              {batch.fromDate?.toDateString()} - {batch.toDate?.toDateString()}
-            </Text>
+            <Text>{batch.department}</Text>
+            <Text>{new Date(batch.fromDate).toDateString()} - {new Date(batch.toDate).toDateString()}</Text>
           </View>
           <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.actionBtn, styles.editBtn]}
-              onPress={() => handleEditBatch(batch)}
-            >
+            <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => handleEditBatch(batch)}>
               <Text style={styles.btnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionBtn, styles.deleteBtn]}
-              onPress={() => handleDeleteBatch(batch.id)}
-            >
+            <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDeleteBatch(batch.id)}>
               <Text style={styles.btnText}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
       ))}
-    
     </ScrollView>
   );
 }
@@ -357,14 +314,9 @@ export default function BatchPage() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingBottom: 60,
+    paddingBottom: 80,
   },
-  label: {
-    fontWeight: 'bold',
-    marginTop: 12,
-    marginBottom: 6,
-    fontSize: 16,
-  },
+  label: { fontWeight: 'bold', marginTop: 12 },
   input: {
     borderWidth: 1,
     borderColor: '#aaa',
@@ -372,36 +324,29 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginBottom: 12,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  semesterContainer: {
-    padding: 10,
-    marginVertical: 8,
-    borderWidth: 1,
-    borderRadius: 6,
-    borderColor: '#ccc',
-  },
-  semesterTitle: {
-    fontWeight: 'bold',
-    fontSize: 15,
-    marginBottom: 8,
-  },
   dateButton: {
     padding: 10,
     backgroundColor: '#eee',
     borderRadius: 6,
     marginVertical: 4,
   },
-  dateText: {
-    color: '#333',
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
   },
-   saveButton: {
-    marginTop: 20,
+  semesterContainer: {
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 6,
+    marginVertical: 6,
+    borderColor: '#ccc',
+  },
+  saveButton: {
     backgroundColor: '#007bff',
     padding: 12,
+    marginTop: 20,
     borderRadius: 6,
     alignItems: 'center',
   },
@@ -412,37 +357,15 @@ const styles = StyleSheet.create({
   listItemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     padding: 12,
-    backgroundColor: '#f9f9f9',
-    marginVertical: 5,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 6,
     borderRadius: 6,
   },
-  batchTitle: {
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  batchSubtitle: {
-    fontSize: 12,
-    color: '#555',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  editBtn: {
-    backgroundColor: '#007bff',
-  },
-  deleteBtn: {
-    backgroundColor: '#dc3545',
-  },
-  btnText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
+  batchTitle: { fontWeight: 'bold', fontSize: 16 },
+  actionButtons: { flexDirection: 'row', gap: 10 },
+  actionBtn: { padding: 6, borderRadius: 6 },
+  editBtn: { backgroundColor: '#007bff' },
+  deleteBtn: { backgroundColor: '#dc3545' },
+  btnText: { color: '#fff' },
 });

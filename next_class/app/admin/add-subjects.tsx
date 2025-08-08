@@ -1,124 +1,168 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, ScrollView,
-} from 'react-native';
-import axios from 'axios';
-import MultiSelect from 'react-native-multiple-select';
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ScrollView,
+} from "react-native";
+import axios from "axios";
+import { Picker } from "@react-native-picker/picker";
+import MultiSelect from "react-native-multiple-select";
 
 interface Subject {
   _id?: string;
-  departmentId: string;
-  courseId: string;
+  course: string;
   year: number;
   semester: number;
   subjectName: string;
   teacherIds: string[];
 }
 
-export default function SubjectsPage() {
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
+interface Course {
+  _id: string;
+  name: string;
+  duration: number; // in years
+  semesters: number; // total number of semesters
+}
+
+interface Teacher {
+  _id: string;
+  name: string;
+}
+
+const SubjectManagement = () => {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
 
-  const [selectedDept, setSelectedDept] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('');
-  const [year, setYear] = useState('');
-  const [semester, setSemester] = useState('');
-  const [subjectName, setSubjectName] = useState('');
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [selectedYear, setSelectedYear] = useState(1);
+  const [selectedSemester, setSelectedSemester] = useState(1);
+  const [subjectName, setSubjectName] = useState("");
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+
+  const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const loadInitialData = async () => {
-    const [dRes, cRes, tRes, sRes] = await Promise.all([
-      axios.get('/api/departments'),
-      axios.get('/api/courses'),
-      axios.get('/api/users?role=teacher'),
-      axios.get('/api/subjects'),
-    ]);
-    setDepartments(dRes.data);
-    setCourses(cRes.data);
-    setTeachers(tRes.data);
-    setSubjects(sRes.data);
-  };
-
   useEffect(() => {
-    loadInitialData();
+    fetchCourses();
+    fetchTeachers();
   }, []);
 
-  const handleSubmit = async () => {
-    const payload = {
-      departmentId: selectedDept,
-      courseId: selectedCourse,
-      year: parseInt(year),
-      semester: parseInt(semester),
+  const fetchCourses = async () => {
+    const res = await axios.get("http://localhost:5000/api/courses");
+    setCourses(res.data);
+  };
+
+  const fetchTeachers = async () => {
+    const res = await axios.get("http://localhost:5000/api/teachers");
+    setTeachers(res.data);
+  };
+
+  const handleAddOrUpdate = async () => {
+    const subject: Subject = {
+      course: selectedCourseId,
+      year: selectedYear,
+      semester: selectedSemester,
       subjectName,
       teacherIds: selectedTeachers,
     };
 
-    if (editingId) {
-      await axios.put(`/api/subjects/${editingId}`, payload);
+    if (isEditing && editingId) {
+      await axios.put(`http://localhost:5000/api/subjects/${editingId}`, subject);
+      setIsEditing(false);
+      setEditingId(null);
     } else {
-      await axios.post('/api/subjects', payload);
+      await axios.post("http://localhost:5000/api/subjects", subject);
     }
 
-    resetForm();
-    loadInitialData();
+    clearForm();
+    // Optional: fetch subjects again if needed later
   };
 
-  const resetForm = () => {
-    setSelectedDept('');
-    setSelectedCourse('');
-    setYear('');
-    setSemester('');
-    setSubjectName('');
+  const clearForm = () => {
+    setSelectedCourseId("");
+    setSelectedYear(1);
+    setSelectedSemester(1);
+    setSubjectName("");
     setSelectedTeachers([]);
-    setEditingId(null);
   };
 
   const handleEdit = (subject: Subject) => {
-    setSelectedDept(subject.departmentId);
-    setSelectedCourse(subject.courseId);
-    setYear(subject.year.toString());
-    setSemester(subject.semester.toString());
+    setSelectedCourseId(subject.course);
+    setSelectedYear(subject.year);
+    setSelectedSemester(subject.semester);
     setSubjectName(subject.subjectName);
     setSelectedTeachers(subject.teacherIds);
     setEditingId(subject._id || null);
+    setIsEditing(true);
   };
 
   const handleDelete = async (id: string) => {
-    await axios.delete(`/api/subjects/${id}`);
-    loadInitialData();
+    await axios.delete(`http://localhost:5000/api/subjects/${id}`);
+    setSubjects(subjects.filter((s) => s._id !== id));
   };
+
+  const getSelectedCourse = courses.find((c) => c._id === selectedCourseId);
+  const availableYears = getSelectedCourse ? Array.from({ length: getSelectedCourse.duration }, (_, i) => i + 1) : [];
+  const availableSemesters = getSelectedCourse ? Array.from({ length: getSelectedCourse.semesters }, (_, i) => i + 1) : [];
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>{editingId ? 'Update Subject' : 'Add Subject'}</Text>
+      <Text style={styles.title}>{isEditing ? "Edit Subject" : "Add Subject"}</Text>
 
+      <Text>Course</Text>
+      <Picker
+        selectedValue={selectedCourseId}
+        onValueChange={(itemValue) => setSelectedCourseId(itemValue)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Select Course" value="" />
+        {courses.map((course) => (
+          <Picker.Item key={course._id} label={course.name} value={course._id} />
+        ))}
+      </Picker>
+
+      {selectedCourseId && (
+        <>
+          <Text>Year</Text>
+          <Picker
+            selectedValue={selectedYear}
+            onValueChange={(itemValue) => setSelectedYear(itemValue)}
+            style={styles.picker}
+          >
+            {availableYears.map((year) => (
+              <Picker.Item key={year} label={`Year ${year}`} value={year} />
+            ))}
+          </Picker>
+
+          <Text>Semester</Text>
+          <Picker
+            selectedValue={selectedSemester}
+            onValueChange={(itemValue) => setSelectedSemester(itemValue)}
+            style={styles.picker}
+          >
+            {availableSemesters.map((sem) => (
+              <Picker.Item key={sem} label={`Semester ${sem}`} value={sem} />
+            ))}
+          </Picker>
+        </>
+      )}
+
+      <Text>Subject Name</Text>
       <TextInput
-        placeholder="Year"
-        style={styles.input}
-        keyboardType="numeric"
-        value={year}
-        onChangeText={setYear}
-      />
-      <TextInput
-        placeholder="Semester"
-        style={styles.input}
-        keyboardType="numeric"
-        value={semester}
-        onChangeText={setSemester}
-      />
-      <TextInput
-        placeholder="Subject Name"
-        style={styles.input}
         value={subjectName}
         onChangeText={setSubjectName}
+        style={styles.input}
+        placeholder="Enter Subject Name"
       />
 
-      <Text style={{ marginBottom: 5 }}>Assign Teachers</Text>
+      <Text>Assign Teachers</Text>
       <MultiSelect
-        items={teachers.map(t => ({ id: t._id, name: t.name }))}
+        items={teachers.map((t) => ({ id: t._id, name: t.name }))}
         uniqueKey="id"
         onSelectedItemsChange={setSelectedTeachers}
         selectedItems={selectedTeachers}
@@ -131,30 +175,27 @@ export default function SubjectsPage() {
         selectedItemIconColor="#000"
         itemTextColor="#000"
         displayKey="name"
-        searchInputStyle={{ color: '#000' }}
-        submitButtonColor="#007AFF"
-        submitButtonText="Done"
+        searchInputStyle={{ color: "#000" }}
+        styleMainWrapper={styles.multiSelect}
       />
 
-      <TouchableOpacity onPress={handleSubmit} style={styles.button}>
-        <Text style={styles.buttonText}>{editingId ? 'Update' : 'Add'} Subject</Text>
+      <TouchableOpacity onPress={handleAddOrUpdate} style={styles.button}>
+        <Text style={styles.buttonText}>{isEditing ? "Update" : "Add"}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Subjects List</Text>
+      <Text style={styles.subtitle}>Subjects Added</Text>
       <FlatList
         data={subjects}
-        keyExtractor={(item) => item._id || ''}
+        keyExtractor={(item) => item._id || ""}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={{ fontWeight: 'bold' }}>{item.subjectName}</Text>
-            <Text>Year: {item.year} | Semester: {item.semester}</Text>
-            <Text>Teachers: {item.teacherIds.length}</Text>
-            <View style={styles.row}>
-              <TouchableOpacity onPress={() => handleEdit(item)} style={styles.editBtn}>
-                <Text>Edit</Text>
+          <View style={styles.subjectItem}>
+            <Text>{item.subjectName}</Text>
+            <View style={styles.actions}>
+              <TouchableOpacity onPress={() => handleEdit(item)}>
+                <Text style={styles.editText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(item._id!)} style={styles.delBtn}>
-                <Text>Delete</Text>
+              <TouchableOpacity onPress={() => handleDelete(item._id!)}>
+                <Text style={styles.deleteText}>Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -162,22 +203,21 @@ export default function SubjectsPage() {
       />
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { padding: 15, backgroundColor: '#fff' },
-  title: { fontSize: 20, fontWeight: 'bold', marginVertical: 15 },
-  input: {
-    borderWidth: 1, borderColor: '#ccc', padding: 10, borderRadius: 8, marginBottom: 10,
-  },
-  button: {
-    backgroundColor: '#007AFF', padding: 15, borderRadius: 8, alignItems: 'center', marginVertical: 10,
-  },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
-  card: {
-    padding: 15, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, marginVertical: 8,
-  },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  editBtn: { backgroundColor: '#eef', padding: 8, borderRadius: 6 },
-  delBtn: { backgroundColor: '#fee', padding: 8, borderRadius: 6 },
+  container: { padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
+  subtitle: { fontSize: 18, marginTop: 20 },
+  input: { borderWidth: 1, padding: 10, marginBottom: 10 },
+  picker: { height: 50, borderWidth: 1, marginBottom: 10 },
+  button: { backgroundColor: "blue", padding: 10, borderRadius: 5, marginTop: 10 },
+  buttonText: { color: "white", textAlign: "center", fontWeight: "bold" },
+  multiSelect: { marginBottom: 10 },
+  subjectItem: { padding: 10, borderBottomWidth: 1, flexDirection: "row", justifyContent: "space-between" },
+  actions: { flexDirection: "row", gap: 15 },
+  editText: { color: "orange" },
+  deleteText: { color: "red" },
 });
+
+export default SubjectManagement;

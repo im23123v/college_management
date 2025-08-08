@@ -1,22 +1,18 @@
-const Batch = require('../models/batch');
+const Batch = require('../models/Batch');
 
-exports.createBatch = async (batchData) => {
-  const batch = new Batch(batchData);
+exports.createBatch = async (data) => {
+  const batch = new Batch(data);
   return await batch.save();
 };
 
 exports.getAllBatches = async () => {
-  return await Batch.find();
+  return await Batch.find().sort({ createdAt: -1 });
 };
 
-exports.getBatchById = async (id) => {
-  return await Batch.findById(id);
+exports.updateBatchById = async (id, data) => {
+  return await Batch.findByIdAndUpdate(id, data, { new: true });
 };
 
-exports.updateBatch = async (id, updateData) => {
-  return await Batch.findByIdAndUpdate(id, updateData, { new: true });
-};
-
-exports.deleteBatch = async (id) => {
+exports.deleteBatchById = async (id) => {
   return await Batch.findByIdAndDelete(id);
 };

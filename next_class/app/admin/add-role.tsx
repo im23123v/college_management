@@ -18,7 +18,7 @@ interface Role {
   canDeleteRoles: string[];
 }
 
-const CreateRole: React.FC = () => {
+const CreateRole = () => {
   
   const [roleName, setRoleName] = useState('');
   const [canViewRoles, setCanViewRoles] = useState<string[]>([]);
