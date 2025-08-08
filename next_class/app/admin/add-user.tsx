@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  FlatList,
   Alert,
 } from "react-native";
 import axios from "axios";
@@ -42,7 +41,7 @@ export default function AddUser() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-  const API_BASE = "http://localhost:5000"; // replace with your backend address
+  const API_BASE = "http://localhost:5000"; // or your actual backend address
 
   useEffect(() => {
     fetchAll();
@@ -50,13 +49,15 @@ export default function AddUser() {
 
   const fetchAll = async () => {
     try {
-      const usersRes = await axios.get(`${API_BASE}/users`);
-      const rolesRes = await axios.get(`${API_BASE}/roles`);
-      const deptRes = await axios.get(`${API_BASE}/departments`);
+      const [usersRes, rolesRes, departmentsRes] = await Promise.all([
+        axios.get(`${API_BASE}/users`),
+        axios.get(`${API_BASE}/roles`),
+        axios.get(`${API_BASE}/departments`),
+      ]);
 
       setUsers(usersRes.data);
       setRoles(rolesRes.data);
-      setDepartments(deptRes.data);
+      setDepartments(departmentsRes.data);
     } catch (error) {
       console.error("Error fetching data", error);
     }
@@ -99,10 +100,7 @@ export default function AddUser() {
 
   const handleDelete = async (id: string) => {
     Alert.alert("Delete User", "Are you sure you want to delete this user?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
+      { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
         onPress: async () => {
@@ -137,28 +135,36 @@ export default function AddUser() {
       />
 
       <Text style={styles.label}>Select Role:</Text>
-      {roles.map((r) => (
-        <TouchableOpacity
-          key={r._id}
-          style={styles.checkboxContainer}
-          onPress={() => setRole(r._id)}
-        >
-          <Checkbox status={role === r._id ? "checked" : "unchecked"} />
-          <Text>{r.name}</Text>
-        </TouchableOpacity>
-      ))}
+      {roles.length > 0 ? (
+        roles.map((r) => (
+          <TouchableOpacity
+            key={r._id}
+            style={styles.checkboxContainer}
+            onPress={() => setRole(r._id)}
+          >
+            <Checkbox status={role === r._id ? "checked" : "unchecked"} />
+            <Text>{r.name}</Text>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text style={{ marginBottom: 10 }}>No roles found</Text>
+      )}
 
       <Text style={styles.label}>Select Department:</Text>
-      {departments.map((d) => (
-        <TouchableOpacity
-          key={d._id}
-          style={styles.checkboxContainer}
-          onPress={() => setDepartment(d._id)}
-        >
-          <Checkbox status={department === d._id ? "checked" : "unchecked"} />
-          <Text>{d.name}</Text>
-        </TouchableOpacity>
-      ))}
+      {departments.length > 0 ? (
+        departments.map((d) => (
+          <TouchableOpacity
+            key={d._id}
+            style={styles.checkboxContainer}
+            onPress={() => setDepartment(d._id)}
+          >
+            <Checkbox status={department === d._id ? "checked" : "unchecked"} />
+            <Text>{d.name}</Text>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text style={{ marginBottom: 10 }}>No departments found</Text>
+      )}
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>
@@ -171,9 +177,9 @@ export default function AddUser() {
         <View key={user._id} style={styles.userCard}>
           <Text>Name: {user.name}</Text>
           <Text>Email: {user.email}</Text>
-          <Text>Role: {roles.find((r) => r._id === user.role)?.name}</Text>
+          <Text>Role: {roles.find((r) => r._id === user.role)?.name || "N/A"}</Text>
           <Text>
-            Department: {departments.find((d) => d._id === user.department)?.name}
+            Department: {departments.find((d) => d._id === user.department)?.name || "N/A"}
           </Text>
           <View style={styles.actions}>
             <TouchableOpacity onPress={() => handleEdit(user)}>
@@ -200,7 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   label: { fontWeight: "600", marginTop: 10 },
-  checkboxContainer: { flexDirection: "row", alignItems: "center" },
+  checkboxContainer: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
   button: {
     backgroundColor: "#0066cc",
     padding: 10,
