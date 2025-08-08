@@ -1,5 +1,8 @@
-import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
+// FRONTEND: AddDepartment.tsx (React Native)
+// Updated to connect with backend using fetch API
+
+import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { useEffect, useState } from 'react';
 
 interface Department {
   _id: string;
@@ -8,55 +11,54 @@ interface Department {
   description: string;
 }
 
+const API_BASE = 'http://localhost:5000';
+
 export default function AddDepartment() {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
- const [departments, setDepartments] = useState<Department[]>([
-  {
-    _id: '1',
-    code: 'CSE',
-    name: 'COMPUTER SCIENCE',
-    description: 'Computer Science and Engineering',
-  },
-  {
-    _id: '2',
-    code: 'ECE',
-    name: 'ELECTRONICS',
-    description: 'Electronics and Communication Engineering',
-  },
-  {
-    _id: '3',
-    code: 'MECH',
-    name: 'MECHANICAL',
-    description: 'Mechanical Engineering',
-  },
-]);
-
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleNameChange = (text: string) => setName(text.toUpperCase());
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/departments`);
+      const data = await res.json();
+      setDepartments(data);
+    } catch (err) {
+      console.error('Error fetching departments:', err);
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!code || !name) return;
 
-    const newDepartment: Department = {
-      _id: editingId || Math.random().toString(36).substr(2, 9), // fake ID for now
-      code,
-      name,
-      description,
-    };
+    const department = { code, name, description };
 
-    if (editingId) {
-      setDepartments(prev =>
-        prev.map(dep => (dep._id === editingId ? newDepartment : dep))
-      );
-    } else {
-      setDepartments(prev => [...prev, newDepartment]);
+    try {
+      const res = await fetch(`${API_BASE}/admin/departments${editingId ? `/${editingId}` : ''}`, {
+        method: editingId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(department),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      Alert.alert('Success', editingId ? 'Department updated' : 'Department added');
+      clearForm();
+      fetchDepartments();
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
     }
-
-    clearForm();
   };
 
   const handleEdit = (dep: Department) => {
@@ -66,9 +68,15 @@ export default function AddDepartment() {
     setEditingId(dep._id);
   };
 
-  const handleDelete = (id: string) => {
-    setDepartments(prev => prev.filter(dep => dep._id !== id));
-    if (editingId === id) clearForm();
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch(`${API_BASE}/admin/departments/${id}`, {
+        method: 'DELETE',
+      });
+      fetchDepartments();
+    } catch (err) {
+      console.error('Error deleting department:', err);
+    }
   };
 
   const clearForm = () => {
@@ -90,6 +98,7 @@ export default function AddDepartment() {
         value={code}
         onChangeText={setCode}
         autoCapitalize="characters"
+        placeholder="ex: CSE, ECE"
       />
 
       <Text>Name</Text>
@@ -108,9 +117,10 @@ export default function AddDepartment() {
         placeholder="Enter description"
       />
 
-      <View style={{ marginTop: 20 }}>
-        <Button title={editingId ? 'Update Department' : 'Add Department'} onPress={handleSubmit} />
-      </View>
+      <Button
+        title={editingId ? 'Update Department' : 'Add Department'}
+        onPress={handleSubmit}
+      />
 
       <TextInput
         style={[styles.input, { marginTop: 20 }]}
@@ -126,13 +136,17 @@ export default function AddDepartment() {
           <View style={styles.listItem}>
             <View>
               <Text style={styles.listTitle}>{item.name}</Text>
-              <Text style={styles.listSub}>{item.code} </Text>
+              <Text style={styles.listSub}>{item.code}</Text>
             </View>
             <View style={styles.actions}>
-              <TouchableOpacity style={[styles.actionBtn, styles.edit]} onPress={() => handleEdit(item)}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.edit]}
+                onPress={() => handleEdit(item)}>
                 <Text style={styles.actionText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.actionBtn, styles.delete]} onPress={() => handleDelete(item._id)}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.delete]}
+                onPress={() => handleDelete(item._id)}>
                 <Text style={styles.actionText}>Delete</Text>
               </TouchableOpacity>
             </View>

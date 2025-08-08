@@ -25,7 +25,8 @@ router.put('/users/:id', userController.updateUser);
 // ---- DEPARTMENTS ----
 router.post('/departments', departmentController.addDepartment);
 router.get('/departments', departmentController.getAllDepartments);
-
+router.put('/departments/:id', departmentController.updateDepartment);   // ✅ edit
+router.delete('/departments/:id', departmentController.deleteDepartment); 
 // ---- COURSES ----
 router.post('/courses', courseController.addCourse);
 router.get('/courses', courseController.getAllCourses);

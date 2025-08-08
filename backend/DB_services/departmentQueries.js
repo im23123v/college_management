@@ -1,16 +1,21 @@
 const Department = require('../models/department');
 
+exports.createDepartment = async (data) => {
+  return await Department.create(data);
+};
+
+exports.getAllDepartments = async () => {
+  return await Department.find();
+};
+
 exports.findDepartmentByCode = async (code) => {
   return await Department.findOne({ code });
 };
 
-exports.createDepartment = async (deptData) => {
-  const newDept = new Department(deptData);
-  return await newDept.save();
+exports.updateDepartment = async (id, data) => {
+  return await Department.findByIdAndUpdate(id, data, { new: true });
 };
 
-exports.getAllDepartments = async () => {
-  return await Department.find().sort({ name: 1 });
+exports.deleteDepartment = async (id) => {
+  return await Department.findByIdAndDelete(id);
 };
-
-
