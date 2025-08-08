@@ -57,7 +57,7 @@ const [roles, setRoles] = useState<Role[]>([]);
 useEffect(() => {
   const fetchRoles = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/roles');
+      const response = await fetch('http://localhost:5000/admin/roles');
       const data = await response.json();
       setRoles(data);
     } catch (err) {
@@ -81,8 +81,8 @@ const handleSubmit = async () => {
   try {
     const method = editMode ? 'PUT' : 'POST';
     const url = editMode
-      ? `http://localhost:5000/api/roles/${editingRoleId}`
-      : 'http://localhost:5000/api/roles';
+      ? `http://localhost:5000/admin/roles/${editingRoleId}`
+      : 'http://localhost:5000/admin/roles';
 
     const response = await fetch(url, {
       method,
@@ -120,7 +120,7 @@ const handleSubmit = async () => {
       style: 'destructive',
       onPress: async () => {
         try {
-          const response = await fetch(`http://localhost:5000/api/roles/${roleId}`, {
+          const response = await fetch(`http://localhost:5000/admin/roles/${roleId}`, {
             method: 'DELETE',
           });
 

@@ -19,6 +19,8 @@ router.delete('/roles/:id', roleController.deleteRole);
 
 // ---- USERS ----
 router.post('/users', userController.createUser);
+router.delete('/users/:id', userController.deleteUser);   // 🔸 Delete user
+router.put('/users/:id', userController.updateUser); 
 
 // ---- DEPARTMENTS ----
 router.post('/departments', departmentController.addDepartment);
