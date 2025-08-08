@@ -1,6 +1,3 @@
-// FRONTEND: AddDepartment.tsx (React Native)
-// Updated to connect with backend using fetch API
-
 import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 
@@ -18,7 +15,6 @@ export default function AddDepartment() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleNameChange = (text: string) => setName(text.toUpperCase());
@@ -86,10 +82,6 @@ export default function AddDepartment() {
     setEditingId(null);
   };
 
-  const filteredDepartments = departments.filter(dep =>
-    dep.name.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <View style={styles.container}>
       <Text>Code</Text>
@@ -122,15 +114,8 @@ export default function AddDepartment() {
         onPress={handleSubmit}
       />
 
-      <TextInput
-        style={[styles.input, { marginTop: 20 }]}
-        placeholder="Search departments"
-        value={search}
-        onChangeText={setSearch}
-      />
-
       <FlatList
-        data={filteredDepartments}
+        data={departments}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.listItem}>
