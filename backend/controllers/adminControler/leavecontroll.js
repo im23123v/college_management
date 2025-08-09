@@ -4,7 +4,7 @@ const {
   getLeaveTypesByRole,
   updateLeaveTypeById,
   deleteLeaveTypeById,
-} = require('../queries/leaveQueries');
+} = require('../../DB_services/leaveQueries');
 
 // Create a leave type
 exports.addLeaveType = async (req, res) => {

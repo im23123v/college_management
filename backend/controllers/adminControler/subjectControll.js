@@ -1,4 +1,4 @@
-const subjectQueries = require('../queries/subjectQueries');
+const subjectQueries = require('../../DB_services/subjectQueries');
 
 exports.createSubject = async (req, res) => {
   try {

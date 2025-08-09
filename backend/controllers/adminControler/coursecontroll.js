@@ -5,7 +5,7 @@ const {
   updateCourseById,
   deleteCourseById,
   getCourseById
-} = require('../DB_services/courseQueries');
+} = require('../../DB_services/courseQueries');
 
 // Add a new course
 exports.addCourse = async (req, res) => {

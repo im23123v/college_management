@@ -3,7 +3,7 @@ const {
   getAllBatches,
   updateBatchById,
   deleteBatchById,
-} = require('../queries/batchQueries');
+} = require('../../DB_services/batchQueries');
 
 // Create Batch
 exports.createBatch = async (req, res) => {

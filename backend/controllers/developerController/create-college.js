@@ -1,5 +1,5 @@
-const { generatePassword } = require('../utils/passwordGenerator');
-const { sendEmail } = require('../utils/emailService');
+const { generatePassword } = require('../../utils/passwordGenerator');
+const { sendEmail } = require('../../utils/emailService');
 
 const bcrypt = require('bcryptjs');
 const userQueries = require('../../DB_services/userQueries');
@@ -8,7 +8,7 @@ const {
   createCollegeInDB,
   findCollegeByCode,
   getAllColleges,
-} = require('../queries/collegeQueries');
+} = require('../../DB_services/developerQueries');
 
 
 
@@ -21,7 +21,7 @@ exports.createCollege = async (req, res) => {
 
   try {
     // Generate college code
-    const code = collegename.substring(0, 3).toUpperCase();
+    const code = collegeName.substring(0, 3).toUpperCase();
 
     // Check if code exists
     const existingCollege = await findCollegeByCode(code);
@@ -53,7 +53,7 @@ exports.createCollege = async (req, res) => {
 
     // Send email
     await sendEmail(email, 'Your College Admin Credentials', `
-      Your college "${name}" has been registered.
+      Your college "${collegename}" has been registered.
 
       College Code: ${code}
 
