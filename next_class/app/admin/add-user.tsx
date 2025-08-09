@@ -47,22 +47,23 @@ export default function AddUser() {
     fetchAll();
   }, []);
 
-  const fetchAll = async () => {
-    try {
-      const [usersRes, rolesRes, departmentsRes] = await Promise.all([
-        axios.get(`${API_BASE}/admin/users`),
-        axios.get(`${API_BASE}/admin/roles`),
-        axios.get(`${API_BASE}/admin/departments`),
-      ]);
-      console.log(usersRes);
-      console.log(rolesRes);
-      setUsers(usersRes.data);
-      setRoles(rolesRes.data);
-      setDepartments(departmentsRes.data);
-    } catch (error) {
-      console.error("Error fetching data", error);
-    }
-  };
+    const fetchAll = async () => {
+      try {
+        console.log("fetcing the details ok=---->:")
+        const [ rolesRes, departmentsRes] = await Promise.all([
+
+          axios.get(`${API_BASE}/admin/roles`),
+          axios.get(`${API_BASE}/admin/departments`),
+        ]);
+     
+        console.log("roles:",rolesRes);
+        
+        setRoles(rolesRes.data);
+        setDepartments(departmentsRes.data);
+      } catch (error) {
+        console.error("Error fetching data", error);
+      }
+    };
 
   const resetForm = () => {
     setName("");

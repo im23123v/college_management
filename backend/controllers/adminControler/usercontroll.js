@@ -1,5 +1,5 @@
 const userQueries = require('../../DB_services/userQueries');
-const { sendCredentialsEmail } = require('../../utils/emailService');
+const sendEmail = require('../../utils/emailService');
 
 function generateRandom(length = 8) {
   return Math.random().toString(36).slice(2, 2 + length);
@@ -30,7 +30,19 @@ exports.createUser = async (req, res) => {
       department,
     });
 
-    await sendCredentialsEmail(email, userId, password);
+    await sendEmail(email, 'Your Account Credentials', `
+  Your account has been created successfully.
+
+  Login Credentials:
+  ------------------
+  name:${name}
+  Email: ${email}
+  UserID: ${userId}
+  Password: ${password}
+
+  You can log in with either Email or UserID.
+`);
+
 
     res.status(201).json({
       message: 'User created and credentials sent to email',
