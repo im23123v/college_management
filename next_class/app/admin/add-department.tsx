@@ -1,6 +1,6 @@
 import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 interface Department {
   _id: string;
   code: string;
@@ -35,8 +35,8 @@ export default function AddDepartment() {
 
   const handleSubmit = async () => {
     if (!code || !name) return;
-
-    const department = { code, name, description };
+      const identifier = await AsyncStorage.getItem('email')
+    const department = { identifier,code, name, description };
 
     try {
       const res = await fetch(`${API_BASE}/admin/departments${editingId ? `/${editingId}` : ''}`, {

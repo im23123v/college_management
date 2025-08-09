@@ -6,6 +6,12 @@ const LeaveAllocationSchema = new mongoose.Schema({
 });
 
 const LeaveTypeSchema = new mongoose.Schema({
+    collegeCode: {
+  type: String,
+  required: true,
+  uppercase: true,
+  trim: true,
+},
   name: { type: String, required: true, unique: true },
   isPaid: { type: Boolean, default: false },
   allocations: [LeaveAllocationSchema],

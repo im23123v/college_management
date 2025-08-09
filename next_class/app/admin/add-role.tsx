@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Checkbox, IconButton } from 'react-native-paper';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 interface Role {
   _id: string;
   name: string;
@@ -70,8 +70,9 @@ useEffect(() => {
 
 const handleSubmit = async () => {
   if (!roleName.trim()) return;
-
+  const email = await AsyncStorage.getItem('email');
  const roleData = {
+  identifier:email,
   name: roleName.trim(),
   canAddRoles: canModifyRoles, // map modify to add
   canViewRoles,

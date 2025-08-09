@@ -1,14 +1,14 @@
 const departmentQueries = require('../../DB_services/departmentQueries');
-
+const developer=require('../../DB_services/developerQueries');
 exports.addDepartment = async (req, res) => {
   try {
-    const { code, name, description } = req.body;
+    const { identifier,code, name, description } = req.body;
     if (!code || !name) return res.status(400).json({ message: 'Code and Name are required' });
 
     const exists = await departmentQueries.findDepartmentByCode(code);
     if (exists) return res.status(409).json({ message: 'Department code already exists' });
-
-    const dept = await departmentQueries.createDepartment({ code, name, description });
+     const Collegecode=developer.getCollegeCodeByIdentifier(identifier);
+    const dept = await departmentQueries.createDepartment({ Collegecode,code, name, description });
     res.status(201).json(dept);
   } catch (err) {
     console.error('Error adding department:', err);

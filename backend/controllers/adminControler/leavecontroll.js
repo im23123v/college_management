@@ -9,7 +9,21 @@ const {
 // Create a leave type
 exports.addLeaveType = async (req, res) => {
   try {
-    const leave = await createLeaveType(req.body);
+
+      const {
+      identifier ,
+      name,
+      isPaid,
+      allocations,
+    } = req.body;
+
+    const Collegecode= developer.getCollegeCodeByIdentifier(identifier);
+    const leave = await createLeaveType({
+      Collegecode,
+      name,
+      isPaid,
+      allocations,
+    } );
     res.status(201).json({ message: 'Leave type created', leave });
   } catch (err) {
     console.error('Error creating leave type:', err);

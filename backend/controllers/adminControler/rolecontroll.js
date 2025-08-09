@@ -1,13 +1,16 @@
 const roleQueries = require('../../DB_services/roleQueries');
+const developer=require('../../DB_services/developerQueries');
 
 exports.createRole = async (req, res) => {
   try {
-    const { name, canAddRoles = [], canViewRoles = [], canDeleteRoles = [] } = req.body;
+    const { identifier,name, canAddRoles = [], canViewRoles = [], canDeleteRoles = [] } = req.body;
 
     const existing = await roleQueries.findRoleByName(name);
     if (existing) return res.status(400).json({ message: 'Role already exists' });
 
-    const role = await roleQueries.createRole({ name, canAddRoles, canViewRoles, canDeleteRoles });
+    const code=developer.getCollegeCodeByIdentifier(identifier);
+
+    const role = await roleQueries.createRole({ code,name, canAddRoles, canViewRoles, canDeleteRoles });
     res.status(201).json({ message: 'Role created successfully', role });
   } catch (err) {
     console.error('Error creating role:', err);

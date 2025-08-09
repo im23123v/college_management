@@ -18,6 +18,11 @@ const collegeSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  userId: {
+    type: String,        // assuming userId is a string like "admin123"
+    required: true,
+    unique: true,        // assuming each college has unique userId for admin
+  },
 }, {
   timestamps: true,
 });

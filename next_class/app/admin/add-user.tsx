@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -75,7 +76,8 @@ export default function AddUser() {
 
   const handleSubmit = async () => {
     try {
-      const userPayload = { name, email, role, department };
+      const identifier = await AsyncStorage.getItem('email')
+      const userPayload = { identifier,name, email, role, department };
 
       if (editingUserId) {
         await axios.put(`${API_BASE}/admin/users/${editingUserId}`, userPayload);

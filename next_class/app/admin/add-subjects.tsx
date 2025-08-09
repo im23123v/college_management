@@ -11,8 +11,10 @@ import {
 import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import MultiSelect from "react-native-multiple-select";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Subject {
+  identifier: string,
   _id?: string;
   course: string;
   year: number;
@@ -63,7 +65,9 @@ const SubjectManagement = () => {
   };
 
   const handleAddOrUpdate = async () => {
+    const identifier = await AsyncStorage.getItem('email')
     const subject: Subject = {
+      identifier: identifier || '',
       course: selectedCourseId,
       year: selectedYear,
       semester: selectedSemester,

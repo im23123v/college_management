@@ -1,9 +1,26 @@
 const subjectQueries = require('../../DB_services/subjectQueries');
-
+const developer =require('../../DB_services/developerQueries')
 exports.createSubject = async (req, res) => {
   try {
-    const data = req.body;
-    const subject = await subjectQueries.createSubject(data);
+    const {
+      identifier,    // email or userId sent from AsyncStorage
+      course,        // selectedCourseId
+      year: yearNum, // selectedYear
+      semester: semNum, // selectedSemester
+      subjectName,
+      teacherIds: selectedTeachers,
+    } = req.body;
+
+    const Collegecode=developer.getCollegeCodeByIdentifier(identifier);
+    
+    const subject = await subjectQueries.createSubject({
+      Collegecode,    // email or userId sent from AsyncStorage
+      course,        // selectedCourseId
+      year: yearNum, // selectedYear
+      semester: semNum, // selectedSemester
+      subjectName,
+      teacherIds: selectedTeachers,
+    } );
     res.status(201).json(subject);
   } catch (err) {
     res.status(500).json({ error: err.message });

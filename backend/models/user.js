@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+  collegeCode: {
+  type: String,
+  required: true,
+  uppercase: true,
+  trim: true,
+},
   userId: {
     type: String,
     required: true,

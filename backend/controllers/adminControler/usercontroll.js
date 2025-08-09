@@ -1,17 +1,19 @@
 const userQueries = require('../../DB_services/userQueries');
 const sendEmail = require('../../utils/emailService');
-
+const developer=require('../../DB_services/developerQueries');
 function generateRandom(length = 8) {
   return Math.random().toString(36).slice(2, 2 + length);
 }
 
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, role, department } = req.body;
+    const { identifier,name, email, role, department } = req.body;
 
     if (!name || !email || !role) {
       return res.status(400).json({ message: 'Name, email, and role are required.' });
     }
+
+     const code=developer.getCollegeCodeByIdentifier(identifier);
 
     const existing = await userQueries.findUserByEmail(email);
     if (existing) {
@@ -22,6 +24,7 @@ exports.createUser = async (req, res) => {
     const password = generateRandom(8);
 
     const user = await userQueries.createUser({
+      Collegecode,
       userId,
       name,
       email,

@@ -18,8 +18,6 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ msg: 'Invalid email/userId or password' });
     }
 
-  
-   console.log("where is wrong")
     if (password!==user.password) {
       return res.status(400).json({ msg: 'Invalid email/userId or password' });
     }
@@ -33,8 +31,7 @@ const loginUser = async (req, res) => {
 
     res.json({
       token,
-      userId: user._id,
-      role: user.role.name
+      identifier
     });
 
   } catch (err) {

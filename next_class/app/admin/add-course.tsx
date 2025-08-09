@@ -1,7 +1,7 @@
 import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 interface Department {
   _id: string;
   name: string;
@@ -65,7 +65,9 @@ export default function AddCourse() {
   };
 
   const handleSubmit = async () => {
+    const identifier = await AsyncStorage.getItem('email')
     const courseData = {
+      identifier,
       courseName,
       description,
       departmentId: selectedDept,

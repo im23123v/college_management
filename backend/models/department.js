@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const departmentSchema = new mongoose.Schema({
+  collegeCode: {
+  type: String,
+  required: true,
+  uppercase: true,
+  trim: true,
+},
   code: {
     type: String,
     required: true,

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type SemesterGroup = {
   year: number;
@@ -133,8 +134,9 @@ export default function BatchPage() {
       Alert.alert('Validation', 'Please fill all required fields.');
       return;
     }
-
+    const identifier = await AsyncStorage.getItem('email')
     const newBatch = {
+      identifier,
       course,
       department,
       fromDate,

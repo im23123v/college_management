@@ -6,11 +6,15 @@ const {
   deleteCourseById,
   getCourseById
 } = require('../../DB_services/courseQueries');
+const developer=require('../../DB_services/developerQueries');
 
 // Add a new course
 exports.addCourse = async (req, res) => {
   try {
-    const course = await createCourse(req.body);
+
+    const {identifier,courseName,description,departmentId}=req.body;
+    const Collegecode=developer.getCollegeCodeByIdentifier(identifier);
+    const course = await createCourse({Collegecode,courseName,description,departmentId});
     res.status(201).json(course);
   } catch (error) {
     res.status(500).json({ error: 'Error adding course' });

@@ -11,13 +11,14 @@ import {
   FlatList,
 } from 'react-native';
 import axios from 'axios';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 type Allocation = {
   role: string;
   count: number;
 };
 
 type LeaveType = {
+  identifier:string,
   _id?: string;
   name: string;
   isPaid: boolean;
@@ -95,7 +96,10 @@ const resetForm = () => {
       return;
     }
 
+    const identifier = await AsyncStorage.getItem('email')
+
     const payload: LeaveType = {
+      identifier:identifier || "",
       name: leaveName,
       isPaid,
       allocations: roleList.map((role) => ({

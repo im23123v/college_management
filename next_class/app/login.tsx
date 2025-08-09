@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
   const [userId, setUserId] = useState<string>('');
@@ -21,6 +22,7 @@ const handleLogin = async () => {
     Alert.alert('Error', 'Please enter both Email/User ID and Password');
     return;
   }
+
 
   try {
     const res = await fetch(`${BASE_URL}/auth/login`, {
@@ -38,7 +40,8 @@ const handleLogin = async () => {
       Alert.alert('Login Failed', data.msg || 'Invalid credentials');
       return;
     }
-
+    await AsyncStorage.setItem('token', data.token);
+    await AsyncStorage.setItem('email', data.identifier); 
     switch (data.role) {
       case 'developer':
         router.push('/developer');

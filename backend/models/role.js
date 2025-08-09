@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const roleSchema = new mongoose.Schema({
+   collegeCode: {
+  type: String,
+  required: true,
+  uppercase: true,
+  trim: true,
+},
   name: {
     type: String,
     required: true,
