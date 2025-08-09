@@ -55,6 +55,7 @@ exports.createUser = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await userQueries.getAllUsers();
+    console.log("in the usercontroller:",users);
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch users' });

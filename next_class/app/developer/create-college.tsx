@@ -14,7 +14,7 @@ export default function CreateCollege() {
         body: JSON.stringify({
           collegeName: collegeName,
           email,
-          adminName, // <-- NEW FIELD
+          adminName, 
         }),
       });
 

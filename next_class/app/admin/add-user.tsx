@@ -26,8 +26,8 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  role: string;
-  department: string;
+  role: string | Role;          
+  department: string | Department; 
 }
 
 export default function AddUser() {
@@ -41,7 +41,7 @@ export default function AddUser() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-  const API_BASE = "http://localhost:5000"; // or your actual backend address
+  const API_BASE = "http://localhost:5000"; 
 
   useEffect(() => {
     fetchAll();
@@ -50,11 +50,12 @@ export default function AddUser() {
   const fetchAll = async () => {
     try {
       const [usersRes, rolesRes, departmentsRes] = await Promise.all([
-        axios.get(`${API_BASE}/users`),
-        axios.get(`${API_BASE}/roles`),
-        axios.get(`${API_BASE}/departments`),
+        axios.get(`${API_BASE}/admin/users`),
+        axios.get(`${API_BASE}/admin/roles`),
+        axios.get(`${API_BASE}/admin/departments`),
       ]);
-
+      console.log(usersRes);
+      console.log(rolesRes);
       setUsers(usersRes.data);
       setRoles(rolesRes.data);
       setDepartments(departmentsRes.data);
@@ -76,10 +77,10 @@ export default function AddUser() {
       const userPayload = { name, email, role, department };
 
       if (editingUserId) {
-        await axios.put(`${API_BASE}/users/${editingUserId}`, userPayload);
+        await axios.put(`${API_BASE}/admin/users/${editingUserId}`, userPayload);
         Alert.alert("User updated successfully!");
       } else {
-        await axios.post(`${API_BASE}/users`, userPayload);
+        await axios.post(`${API_BASE}/admin/users`, userPayload);
         Alert.alert("User added successfully!");
       }
 
@@ -93,8 +94,8 @@ export default function AddUser() {
   const handleEdit = (user: User) => {
     setName(user.name);
     setEmail(user.email);
-    setRole(user.role);
-    setDepartment(user.department);
+    setRole(typeof user.role === "string" ? user.role : user.role?._id || "");
+    setDepartment(typeof user.department === "string" ? user.department : user.department?._id || "");
     setEditingUserId(user._id);
   };
 
@@ -105,7 +106,7 @@ export default function AddUser() {
         text: "Delete",
         onPress: async () => {
           try {
-            await axios.delete(`${API_BASE}/users/${id}`);
+            await axios.delete(`${API_BASE}/admin/users/${id}`);
             fetchAll();
           } catch (err) {
             console.error("Error deleting user", err);
@@ -113,6 +114,18 @@ export default function AddUser() {
         },
       },
     ]);
+  };
+
+  // Helper to get role name safely
+  const getRoleName = (userRole: string | Role) => {
+    const roleId = typeof userRole === "string" ? userRole : userRole?._id;
+    return roles.find((r) => r._id === roleId)?.name || "N/A";
+  };
+
+  // Helper to get department name safely
+  const getDepartmentName = (userDept: string | Department) => {
+    const deptId = typeof userDept === "string" ? userDept : userDept?._id;
+    return departments.find((d) => d._id === deptId)?.name || "N/A";
   };
 
   return (
@@ -177,10 +190,8 @@ export default function AddUser() {
         <View key={user._id} style={styles.userCard}>
           <Text>Name: {user.name}</Text>
           <Text>Email: {user.email}</Text>
-          <Text>Role: {roles.find((r) => r._id === user.role)?.name || "N/A"}</Text>
-          <Text>
-            Department: {departments.find((d) => d._id === user.department)?.name || "N/A"}
-          </Text>
+          <Text>Role: {getRoleName(user.role)}</Text>
+          <Text>Department: {getDepartmentName(user.department)}</Text>
           <View style={styles.actions}>
             <TouchableOpacity onPress={() => handleEdit(user)}>
               <Text style={styles.editText}>Edit</Text>

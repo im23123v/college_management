@@ -14,35 +14,36 @@ export default function Login() {
   const [userId, setUserId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const router = useRouter();
+    const BASE_URL = 'http://localhost:5000';
 
 const handleLogin = async () => {
   if (!userId || !password) {
-    Alert.alert('Error', 'Please enter both User ID and Password');
+    Alert.alert('Error', 'Please enter both Email/User ID and Password');
     return;
   }
 
   try {
-    const res = await fetch('http://<your-backend-url>/api/login', {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId, password }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identifier: userId,
+        password
+      }),
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      Alert.alert('Login Failed', data.message || 'Invalid credentials');
+      Alert.alert('Login Failed', data.msg || 'Invalid credentials');
       return;
     }
+
     switch (data.role) {
       case 'developer':
         router.push('/developer');
         break;
       case 'admin':
-        router.push('/admin');
-        break;
       case 'college-admin':
         router.push('/admin');
         break;

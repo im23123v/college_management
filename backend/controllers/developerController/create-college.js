@@ -1,6 +1,7 @@
 const { generatePassword } = require('../../utils/passwordGenerator');
-const { sendEmail } = require('../../utils/emailService');
-
+const sendEmail = require('../../utils/emailService');
+const Role=require('../../models/role');
+const Department=require('../../models/department');
 const bcrypt = require('bcryptjs');
 const userQueries = require('../../DB_services/userQueries');
 
@@ -20,49 +21,51 @@ exports.createCollege = async (req, res) => {
   const { collegeName, adminName, email } = req.body;
 
   try {
-    // Generate college code
     const code = collegeName.substring(0, 3).toUpperCase();
 
-    // Check if code exists
     const existingCollege = await findCollegeByCode(code);
     if (existingCollege) {
       return res.status(400).json({ message: 'College code already exists. Choose a unique college name.' });
     }
 
-    // Generate password
     const plainPassword = generatePassword();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    // Create college
-    const college = await createCollegeInDB(name, code, email);
+    const college = await createCollegeInDB(collegeName, code, email);
 
     const userId = generateRandom(6);
-    const role = 'college-admin';
-    const department = 'all';
+   
+const roleDoc = await Role.findOne({ name: 'college-admin' });
+const departmentDoc = await Department.findOne({ name: 'ALL' });
 
-    // Create user
-     const user = await userQueries.createUser({
-          userId,
-          adminName,
-          email,
-          plainPassword,
-          role,
-          department,
-        });
-    
+if (!roleDoc || !departmentDoc) {
+  return res.status(400).json({ message: 'Role or Department not found' });
+}
 
-    // Send email
+const role = roleDoc._id;
+const department = departmentDoc._id;
+
+    const user = await userQueries.createUser({
+      userId,
+      name: adminName,
+      email,
+      password:plainPassword, 
+      role,
+      department,
+    });
+
     await sendEmail(email, 'Your College Admin Credentials', `
-      Your college "${collegename}" has been registered.
+      Your college "${collegeName}" has been registered.
 
       College Code: ${code}
 
       Login Credentials:
       ------------------
-      UserID: ${email}
+      Email: ${email}
+      UserID: ${userId}
       Password: ${plainPassword}
 
-      Please keep this information secure.
+      You can log in with either Email or UserID.
     `);
 
     res.status(201).json({
@@ -81,7 +84,6 @@ exports.createCollege = async (req, res) => {
     res.status(500).json({ error: 'Failed to create college and admin user' });
   }
 };
-
 
 exports.getColleges = async (req, res) => {
   try {

@@ -10,9 +10,8 @@ exports.createRole = async (roleData) => {
 };
 
 exports.getAllRoles = async () => {
-  return await Role.find().select('_id name');
+  return await Role.find().select('name');
 };
-
 
 exports.updateRoleById = async (id, updatedData) => {
   return await Role.findByIdAndUpdate(id, updatedData, { new: true });

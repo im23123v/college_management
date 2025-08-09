@@ -1,8 +1,20 @@
-const User = require('../models/User');
+const User = require('../models/user');
 
 exports.findUserByEmail = async (email) => {
-  return await User.findOne({ email });
+  return await User.findOne({ email }).populate('role');
 };
+
+
+exports.findUserByIdentifier = async (identifier) => {
+  return await User.findOne({
+    $or: [
+      { email: identifier },
+      { userId: identifier }
+    ]
+  }).populate('role'); 
+};
+
+
 
 exports.createUser = async (userData) => {
   const user = new User(userData);

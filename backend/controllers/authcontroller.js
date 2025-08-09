@@ -1,27 +1,46 @@
-const bcrypt = require('bcrypt');
+// controllers/authController.js
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../DB_services/userQueries');
-
-
+const userQueries = require('../DB_services/userQueries');
 
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body; // identifier = email or userId
 
   try {
-    const user = await User.findUserByEmail(email );
-    if (!user) return res.status(400).json({ msg: 'Invalid email or password' });
+    // Find user by email or userId
+    console.log(identifier);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: 'Invalid email or password' });
+    const user = await userQueries.findUserByIdentifier(identifier);
 
-    const token = jwt.sign({ userId: user._id },process.env.JWT_SECRET, { expiresIn: '7d' });
+   console.log(user);
+    
+    if (!user) {
+      return res.status(400).json({ msg: 'Invalid email/userId or password' });
+    }
 
-    res.json({ token, userId: user._id });
+  
+   console.log("where is wrong")
+    if (password!==user.password) {
+      return res.status(400).json({ msg: 'Invalid email/userId or password' });
+    }
+
+    // Create JWT token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role.name },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      userId: user._id,
+      role: user.role.name
+    });
+
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ msg: 'Login failed' });
   }
 };
 
-module.exports = {
-  loginUser,
-};
+module.exports = { loginUser };

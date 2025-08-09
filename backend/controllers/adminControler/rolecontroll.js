@@ -15,10 +15,12 @@ exports.createRole = async (req, res) => {
   }
 };
 
-// Get all roles
+
+
 exports.getAllRoles = async (req, res) => {
   try {
     const roles = await roleQueries.getAllRoles();
+    console.log("in rolecontrolpage:  ",roles);
     res.json(roles);
   } catch (err) {
     console.error('Error fetching roles:', err);
@@ -27,7 +29,7 @@ exports.getAllRoles = async (req, res) => {
 };
 
 
-// UPDATE Role
+
 exports.updateRole = async (req, res) => {
   try {
     const roleId = req.params.id;

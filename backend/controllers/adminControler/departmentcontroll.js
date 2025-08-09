@@ -19,6 +19,7 @@ exports.addDepartment = async (req, res) => {
 exports.getAllDepartments = async (req, res) => {
   try {
     const departments = await departmentQueries.getAllDepartments();
+    console.log("in department controll: ",departments);
     res.json(departments);
   } catch (err) {
     console.error('Error fetching departments:', err);
