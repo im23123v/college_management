@@ -71,6 +71,9 @@ useEffect(() => {
 const handleSubmit = async () => {
   if (!roleName.trim()) return;
   const email = await AsyncStorage.getItem('email');
+
+  console.log("emial:",email);
+
  const roleData = {
   identifier:email,
   name: roleName.trim(),

@@ -6,9 +6,11 @@ exports.addDepartment = async (req, res) => {
     if (!code || !name) return res.status(400).json({ message: 'Code and Name are required' });
 
     const exists = await departmentQueries.findDepartmentByCode(code);
+
     if (exists) return res.status(409).json({ message: 'Department code already exists' });
-     const Collegecode=developer.getCollegeCodeByIdentifier(identifier);
-    const dept = await departmentQueries.createDepartment({ Collegecode,code, name, description });
+
+     const collegeCode=await developer.getCollegeCodeByIdentifier(identifier);
+    const dept = await departmentQueries.createDepartment({ collegeCode,code, name, description });
     res.status(201).json(dept);
   } catch (err) {
     console.error('Error adding department:', err);

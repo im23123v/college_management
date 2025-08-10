@@ -42,7 +42,7 @@ const handleLogin = async () => {
     }
     await AsyncStorage.setItem('token', data.token);
     await AsyncStorage.setItem('email', data.identifier); 
-    switch (data.role) {
+    switch (data.user.role.name) {
       case 'developer':
         router.push('/developer');
         break;
