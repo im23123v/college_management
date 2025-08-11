@@ -11,11 +11,30 @@ import {
 import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import MultiSelect from "react-native-multiple-select";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface Department {
+  _id: string;
+  name: string;
+}
+
+interface Course {
+  _id: string;
+  courseName: string;
+  duration: number;
+  semesters: number;
+}
+
+interface Teacher {
+  _id: string;
+  name: string;
+  department: string;
+}
 
 interface Subject {
-  identifier: string,
   _id?: string;
+  identifier: string;
+  department: string;
   course: string;
   year: number;
   semester: number;
@@ -23,26 +42,18 @@ interface Subject {
   teacherIds: string[];
 }
 
-interface Course {
-  _id: string;
-  name: string;
-  duration: number; // in years
-  semesters: number; // total number of semesters
-}
-
-interface Teacher {
-  _id: string;
-  name: string;
-}
+const API_BASE = "http://localhost:5000/admin"; // Replace with your local IP if testing on device
 
 const SubjectManagement = () => {
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
 
+  const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState("");
-  const [selectedYear, setSelectedYear] = useState(1);
-  const [selectedSemester, setSelectedSemester] = useState(1);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
   const [subjectName, setSubjectName] = useState("");
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
 
@@ -50,92 +61,155 @@ const SubjectManagement = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchDepartments();
     fetchCourses();
-    fetchTeachers();
+    fetchSubjects();
   }, []);
 
-  const fetchCourses = async () => {
-    const res = await axios.get("http://localhost:5000/api/courses");
-    setCourses(res.data);
+  useEffect(() => {
+    if (selectedDepartment) {
+      fetchTeachers(selectedDepartment);
+    }
+  }, [selectedDepartment]);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/departments`);
+      setDepartments(res.data);
+    } catch (err) {
+      console.error("Error fetching departments", err);
+    }
   };
 
-  const fetchTeachers = async () => {
-    const res = await axios.get("http://localhost:5000/api/teachers");
-    setTeachers(res.data);
+  const fetchCourses = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/courses`);
+      setCourses(res.data);
+    } catch (err) {
+      console.error("Error fetching courses", err);
+    }
+  };
+
+  const fetchTeachers = async (department: string) => {
+    try {
+      const res = await axios.get(`${API_BASE}/teachers?department=${department}`);
+      setTeachers(res.data);
+    } catch (err) {
+      console.error("Error fetching teachers", err);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/subjects`);
+      setSubjects(res.data);
+    } catch (err) {
+      console.error("Error fetching subjects", err);
+    }
   };
 
   const handleAddOrUpdate = async () => {
-    const identifier = await AsyncStorage.getItem('email')
+    const identifier = await AsyncStorage.getItem("email");
+
     const subject: Subject = {
-      identifier: identifier || '',
+      identifier: identifier || "",
+      department: selectedDepartment,
       course: selectedCourseId,
-      year: selectedYear,
-      semester: selectedSemester,
+      year: selectedYear || 1,
+      semester: selectedSemester || 1,
       subjectName,
       teacherIds: selectedTeachers,
     };
 
-    if (isEditing && editingId) {
-      await axios.put(`http://localhost:5000/api/subjects/${editingId}`, subject);
-      setIsEditing(false);
-      setEditingId(null);
-    } else {
-      await axios.post("http://localhost:5000/api/subjects", subject);
+    try {
+      if (isEditing && editingId) {
+        await axios.put(`${API_BASE}/subjects/${editingId}`, subject);
+      } else {
+        await axios.post(`${API_BASE}/subjects`, subject);
+      }
+      clearForm();
+      fetchSubjects();
+    } catch (err) {
+      console.error("Error saving subject", err);
     }
-
-    clearForm();
-    // Optional: fetch subjects again if needed later
   };
 
   const clearForm = () => {
+    setSelectedDepartment("");
     setSelectedCourseId("");
-    setSelectedYear(1);
-    setSelectedSemester(1);
+    setSelectedYear(null);
+    setSelectedSemester(null);
     setSubjectName("");
     setSelectedTeachers([]);
+    setIsEditing(false);
+    setEditingId(null);
   };
 
-  const handleEdit = (subject: Subject) => {
-    setSelectedCourseId(subject.course);
-    setSelectedYear(subject.year);
-    setSelectedSemester(subject.semester);
-    setSubjectName(subject.subjectName);
-    setSelectedTeachers(subject.teacherIds);
-    setEditingId(subject._id || null);
+  const handleEdit = (subj: Subject) => {
+    setSelectedDepartment(subj.department);
+    setSelectedCourseId(subj.course);
+    setSelectedYear(subj.year);
+    setSelectedSemester(subj.semester);
+    setSubjectName(subj.subjectName);
+    setSelectedTeachers(subj.teacherIds);
+    setEditingId(subj._id || null);
     setIsEditing(true);
   };
 
   const handleDelete = async (id: string) => {
-    await axios.delete(`http://localhost:5000/api/subjects/${id}`);
-    setSubjects(subjects.filter((s) => s._id !== id));
+    try {
+      await axios.delete(`${API_BASE}/subjects/${id}`);
+      setSubjects(subjects.filter((s) => s._id !== id));
+    } catch (err) {
+      console.error("Error deleting subject", err);
+    }
   };
 
   const getSelectedCourse = courses.find((c) => c._id === selectedCourseId);
-  const availableYears = getSelectedCourse ? Array.from({ length: getSelectedCourse.duration }, (_, i) => i + 1) : [];
-  const availableSemesters = getSelectedCourse ? Array.from({ length: getSelectedCourse.semesters }, (_, i) => i + 1) : [];
+  const availableYears = getSelectedCourse
+    ? Array.from({ length: getSelectedCourse.duration }, (_, i) => i + 1)
+    : [];
+  const availableSemesters = getSelectedCourse
+    ? Array.from({ length: getSelectedCourse.semesters }, (_, i) => i + 1)
+    : [];
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>{isEditing ? "Edit Subject" : "Add Subject"}</Text>
 
+      {/* Department Picker */}
+      <Text>Department</Text>
+      <Picker
+        selectedValue={selectedDepartment}
+        onValueChange={(val) => setSelectedDepartment(val)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Select Department" value="" />
+        {departments.map((dept) => (
+          <Picker.Item key={dept._id} label={dept.name} value={dept.name} />
+        ))}
+      </Picker>
+
+      {/* Course Picker */}
       <Text>Course</Text>
       <Picker
         selectedValue={selectedCourseId}
-        onValueChange={(itemValue) => setSelectedCourseId(itemValue)}
+        onValueChange={(val) => setSelectedCourseId(val)}
         style={styles.picker}
       >
         <Picker.Item label="Select Course" value="" />
         {courses.map((course) => (
-          <Picker.Item key={course._id} label={course.name} value={course._id} />
+          <Picker.Item key={course._id} label={course.courseName} value={course._id} />
         ))}
       </Picker>
 
+      
       {selectedCourseId && (
         <>
           <Text>Year</Text>
           <Picker
             selectedValue={selectedYear}
-            onValueChange={(itemValue) => setSelectedYear(itemValue)}
+            onValueChange={(val) => setSelectedYear(val)}
             style={styles.picker}
           >
             {availableYears.map((year) => (
@@ -143,10 +217,11 @@ const SubjectManagement = () => {
             ))}
           </Picker>
 
+          
           <Text>Semester</Text>
           <Picker
             selectedValue={selectedSemester}
-            onValueChange={(itemValue) => setSelectedSemester(itemValue)}
+            onValueChange={(val) => setSelectedSemester(val)}
             style={styles.picker}
           >
             {availableSemesters.map((sem) => (
@@ -156,6 +231,7 @@ const SubjectManagement = () => {
         </>
       )}
 
+      {/* Subject Name */}
       <Text>Subject Name</Text>
       <TextInput
         value={subjectName}
@@ -164,6 +240,7 @@ const SubjectManagement = () => {
         placeholder="Enter Subject Name"
       />
 
+      {/* Teacher MultiSelect */}
       <Text>Assign Teachers</Text>
       <MultiSelect
         items={teachers.map((t) => ({ id: t._id, name: t.name }))}
@@ -183,10 +260,12 @@ const SubjectManagement = () => {
         styleMainWrapper={styles.multiSelect}
       />
 
+      {/* Submit Button */}
       <TouchableOpacity onPress={handleAddOrUpdate} style={styles.button}>
         <Text style={styles.buttonText}>{isEditing ? "Update" : "Add"}</Text>
       </TouchableOpacity>
 
+      {/* Subjects List */}
       <Text style={styles.subtitle}>Subjects Added</Text>
       <FlatList
         data={subjects}

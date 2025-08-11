@@ -8,13 +8,12 @@ const {
 } = require('../../DB_services/courseQueries');
 const developer=require('../../DB_services/developerQueries');
 
-// Add a new course
 exports.addCourse = async (req, res) => {
   try {
 
     const {identifier,courseName,description,departmentId}=req.body;
-    const Collegecode=developer.getCollegeCodeByIdentifier(identifier);
-    const course = await createCourse({Collegecode,courseName,description,departmentId});
+    const collegeCode=await developer.getCollegeCodeByIdentifier(identifier);
+    const course = await createCourse({collegeCode,courseName,description,departmentId});
     res.status(201).json(course);
   } catch (error) {
     res.status(500).json({ error: 'Error adding course' });
@@ -25,6 +24,8 @@ exports.addCourse = async (req, res) => {
 exports.getAllCourses = async (req, res) => {
   try {
     const courses = await getAllCourses();
+
+    console.log("courses:",courses);
     res.status(200).json(courses);
   } catch (error) {
     res.status(500).json({ error: 'Error fetching all courses' });

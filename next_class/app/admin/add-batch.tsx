@@ -27,7 +27,7 @@ type Batch = {
   id: string;
   course: string;
   department: string;
-  fromDate: string; // backend sends date as string
+  fromDate: string;
   toDate: string;
   hasSemester: boolean;
   semestersPerYear: number;
@@ -39,6 +39,9 @@ const semesterOptions = [1, 2, 3, 4];
 export default function BatchPage() {
   const [course, setCourse] = useState('');
   const [department, setDepartment] = useState('');
+  const [coursesList, setCoursesList] = useState<string[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<string[]>([]);
+
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [hasSemester, setHasSemester] = useState(false);
@@ -47,7 +50,9 @@ export default function BatchPage() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
 
-  const BASE_URL = 'http://localhost:5000/api/batches';
+  const BASE_URL = 'http://localhost:5000/admin/batches';
+  const COURSE_URL = 'http://localhost:5000/admin/courses';
+  const DEPARTMENT_URL = 'http://localhost:5000/admin/departments';
 
   const calculateYears = () => {
     if (!fromDate || !toDate) return 0;
@@ -87,6 +92,7 @@ export default function BatchPage() {
   const fetchBatches = async () => {
     try {
       const res = await fetch(BASE_URL);
+      if (!res.ok) throw new Error('Failed to fetch batches');
       const data = await res.json();
       setBatches(data);
     } catch (err) {
@@ -94,8 +100,33 @@ export default function BatchPage() {
     }
   };
 
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch(COURSE_URL);
+      
+      if (!res.ok) throw new Error('Failed to fetch courses');
+      const data = await res.json();
+      setCoursesList(data.map((c: any) => c.courseName)); 
+    } catch (err) {
+      Alert.alert('Error', 'Failed to fetch courses');
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await fetch(DEPARTMENT_URL);
+      if (!res.ok) throw new Error('Failed to fetch departments');
+      const data = await res.json();
+      setDepartmentsList(data.map((d: any) => d.name)); // assuming backend sends array of departments
+    } catch (err) {
+      Alert.alert('Error', 'Failed to fetch departments');
+    }
+  };
+
   useEffect(() => {
     fetchBatches();
+    fetchCourses();
+    fetchDepartments();
   }, []);
 
   const updateSemesterDate = (
@@ -134,7 +165,7 @@ export default function BatchPage() {
       Alert.alert('Validation', 'Please fill all required fields.');
       return;
     }
-    const identifier = await AsyncStorage.getItem('email')
+    const identifier = await AsyncStorage.getItem('email');
     const newBatch = {
       identifier,
       course,
@@ -216,10 +247,20 @@ export default function BatchPage() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.label}>Course</Text>
-      <TextInput style={styles.input} value={course} onChangeText={setCourse} placeholder="Course" />
+      <Picker selectedValue={course} onValueChange={setCourse}>
+        <Picker.Item label="Select Course" value="" />
+        {coursesList.map((c) => (
+          <Picker.Item key={c} label={c} value={c} />
+        ))}
+      </Picker>
 
       <Text style={styles.label}>Department</Text>
-      <TextInput style={styles.input} value={department} onChangeText={setDepartment} placeholder="Department" />
+      <Picker selectedValue={department} onValueChange={setDepartment}>
+        <Picker.Item label="Select Department" value="" />
+        {departmentsList.map((d) => (
+          <Picker.Item key={d} label={d} value={d} />
+        ))}
+      </Picker>
 
       <Text style={styles.label}>From Date</Text>
       <TouchableOpacity style={styles.dateButton} onPress={() => setMainDatePicker('from')}>
@@ -292,7 +333,7 @@ export default function BatchPage() {
       </TouchableOpacity>
 
       <Text style={styles.label}>Saved Batches</Text>
-      {batches.map((batch) => (
+      {batches.length>0 && batches.map((batch) => (
         <View key={batch.id} style={styles.listItemRow}>
           <View>
             <Text style={styles.batchTitle}>{batch.course}</Text>
@@ -360,7 +401,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'black',
     marginVertical: 6,
     borderRadius: 6,
   },

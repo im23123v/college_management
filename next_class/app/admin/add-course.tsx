@@ -27,7 +27,7 @@ export default function AddCourse() {
 
   // Fetch departments
   useEffect(() => {
-    fetch(`${API_BASE}/api/departments`)
+    fetch(`${API_BASE}/admin/departments`)
       .then(res => res.json())
       .then(data => setDepartments(data))
       .catch(err => console.error('Error fetching departments:', err));

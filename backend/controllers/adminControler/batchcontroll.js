@@ -22,6 +22,7 @@ exports.createBatch = async (req, res) => {
 exports.getAllBatches = async (req, res) => {
   try {
     const batches = await getAllBatches();
+    console.log(batches);
     res.status(200).json(batches);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch batches', message: err.message });
