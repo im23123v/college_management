@@ -13,7 +13,7 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: 'Name, email, and role are required.' });
     }
 
-     const code=developer.getCollegeCodeByIdentifier(identifier);
+     const collegeCode=await developer.getCollegeCodeByIdentifier(identifier);
 
     const existing = await userQueries.findUserByEmail(email);
     if (existing) {
@@ -24,7 +24,7 @@ exports.createUser = async (req, res) => {
     const password = generateRandom(8);
 
     const user = await userQueries.createUser({
-      Collegecode,
+      collegeCode,
       userId,
       name,
       email,
@@ -65,17 +65,17 @@ exports.createUser = async (req, res) => {
 };
 
 
-
-
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await userQueries.getAllUsers();
-    console.log("in the usercontroller:",users);
+    const searchQuery = req.query.search || null;
+    const users = await userQueries.getAllUsers(searchQuery);
+    console.log("in the usercontroller:", users);
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 };
+
 
 exports.deleteUser = async (req, res) => {
   try {

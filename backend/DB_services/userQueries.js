@@ -15,6 +15,20 @@ exports.findUserByIdentifier = async (identifier) => {
 };
 
 
+async function getUsers(search) {
+  try {
+    let query = {};
+    if (search && search.trim() !== "") {
+      query = { name: { $regex: search, $options: "i" } }; 
+    }
+    return await User.find(query);
+  } catch (err) {
+    throw new Error(err.message);
+  }
+}
+
+module.exports = { getUsers };
+
 
 exports.createUser = async (userData) => {
   const user = new User(userData);

@@ -21,6 +21,7 @@ router.delete('/roles/:id', roleController.deleteRole);
 router.post('/users', userController.createUser);
 router.delete('/users/:id', userController.deleteUser);   // 🔸 Delete user
 router.put('/users/:id', userController.updateUser); 
+router.get('/users', userController.getAllUsers); 
 
 // ---- DEPARTMENTS ----
 router.post('/departments', departmentController.addDepartment);

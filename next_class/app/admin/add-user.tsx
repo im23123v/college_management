@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -28,8 +28,8 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  role: string | Role;          
-  department: string | Department; 
+  role: string | Role;
+  department: string | Department;
 }
 
 export default function AddUser() {
@@ -42,30 +42,32 @@ export default function AddUser() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const API_BASE = API_BASE_URL; 
+  const API_BASE = API_BASE_URL;
 
   useEffect(() => {
-    fetchAll();
-  }, []);
+    fetchAll(searchQuery);
+  }, [searchQuery]);
 
-    const fetchAll = async () => {
-      try {
-        console.log("fetcing the details ok=---->:")
-        const [ rolesRes, departmentsRes] = await Promise.all([
+  const fetchAll = async (query = "") => {
+    try {
+      console.log("Fetching data...");
+      const [rolesRes, departmentsRes, usersRes] = await Promise.all([
+        axios.get(`${API_BASE}/admin/roles`),
+        axios.get(`${API_BASE}/admin/departments`),
+        axios.get(`${API_BASE}/admin/users`, {
+          params: query ? { search: query } : {},
+        }),
+      ]);
 
-          axios.get(`${API_BASE}/admin/roles`),
-          axios.get(`${API_BASE}/admin/departments`),
-        ]);
-     
-        console.log("roles:",rolesRes);
-        
-        setRoles(rolesRes.data);
-        setDepartments(departmentsRes.data);
-      } catch (error) {
-        console.error("Error fetching data", error);
-      }
-    };
+      setRoles(rolesRes.data);
+      setDepartments(departmentsRes.data);
+      setUsers(usersRes.data);
+    } catch (error) {
+      console.error("Error fetching data", error);
+    }
+  };
 
   const resetForm = () => {
     setName("");
@@ -77,8 +79,8 @@ export default function AddUser() {
 
   const handleSubmit = async () => {
     try {
-      const identifier = await AsyncStorage.getItem('email')
-      const userPayload = { identifier,name, email, role, department };
+      const identifier = await AsyncStorage.getItem("email");
+      const userPayload = { identifier, name, email, role, department };
 
       if (editingUserId) {
         await axios.put(`${API_BASE}/admin/users/${editingUserId}`, userPayload);
@@ -88,7 +90,7 @@ export default function AddUser() {
         Alert.alert("User added successfully!");
       }
 
-      fetchAll();
+      fetchAll(searchQuery);
       resetForm();
     } catch (err) {
       console.error("Error submitting user", err);
@@ -99,7 +101,11 @@ export default function AddUser() {
     setName(user.name);
     setEmail(user.email);
     setRole(typeof user.role === "string" ? user.role : user.role?._id || "");
-    setDepartment(typeof user.department === "string" ? user.department : user.department?._id || "");
+    setDepartment(
+      typeof user.department === "string"
+        ? user.department
+        : user.department?._id || ""
+    );
     setEditingUserId(user._id);
   };
 
@@ -111,7 +117,7 @@ export default function AddUser() {
         onPress: async () => {
           try {
             await axios.delete(`${API_BASE}/admin/users/${id}`);
-            fetchAll();
+            fetchAll(searchQuery);
           } catch (err) {
             console.error("Error deleting user", err);
           }
@@ -120,13 +126,11 @@ export default function AddUser() {
     ]);
   };
 
-  // Helper to get role name safely
   const getRoleName = (userRole: string | Role) => {
     const roleId = typeof userRole === "string" ? userRole : userRole?._id;
     return roles.find((r) => r._id === roleId)?.name || "N/A";
   };
 
-  // Helper to get department name safely
   const getDepartmentName = (userDept: string | Department) => {
     const deptId = typeof userDept === "string" ? userDept : userDept?._id;
     return departments.find((d) => d._id === deptId)?.name || "N/A";
@@ -134,7 +138,9 @@ export default function AddUser() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.heading}>{editingUserId ? "Edit User" : "Add User"}</Text>
+      <Text style={styles.heading}>
+        {editingUserId ? "Edit User" : "Add User"}
+      </Text>
 
       <TextInput
         style={styles.input}
@@ -175,7 +181,9 @@ export default function AddUser() {
             style={styles.checkboxContainer}
             onPress={() => setDepartment(d._id)}
           >
-            <Checkbox status={department === d._id ? "checked" : "unchecked"} />
+            <Checkbox
+              status={department === d._id ? "checked" : "unchecked"}
+            />
             <Text>{d.name}</Text>
           </TouchableOpacity>
         ))
@@ -188,6 +196,14 @@ export default function AddUser() {
           {editingUserId ? "Update User" : "Add User"}
         </Text>
       </TouchableOpacity>
+
+      {/* Search Bar */}
+      <TextInput
+        style={styles.input}
+        placeholder="Search by name"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
 
       <Text style={styles.heading}>Users</Text>
       {users.map((user) => (
@@ -221,7 +237,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   label: { fontWeight: "600", marginTop: 10 },
-  checkboxContainer: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
   button: {
     backgroundColor: "#0066cc",
     padding: 10,
