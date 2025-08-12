@@ -12,6 +12,7 @@ import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import MultiSelect from "react-native-multiple-select";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from "../../app/config";
 
 interface Department {
   _id: string;
@@ -42,7 +43,7 @@ interface Subject {
   teacherIds: string[];
 }
 
-const API_BASE = "http://localhost:5000/admin"; // Replace with your local IP if testing on device
+const API_BASE = `${API_BASE_URL}/admin`; // Replace with your local IP if testing on device
 
 const SubjectManagement = () => {
   const [departments, setDepartments] = useState<Department[]>([]);

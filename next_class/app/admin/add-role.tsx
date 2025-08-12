@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Checkbox, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from "../../app/config";
 interface Role {
   _id: string;
   name: string;
@@ -57,7 +58,7 @@ const [roles, setRoles] = useState<Role[]>([]);
 useEffect(() => {
   const fetchRoles = async () => {
     try {
-      const response = await fetch('http://localhost:5000/admin/roles');
+      const response = await fetch(`${API_BASE_URL}/admin/roles`);
       const data = await response.json();
       setRoles(data);
     } catch (err) {
@@ -85,8 +86,8 @@ const handleSubmit = async () => {
   try {
     const method = editMode ? 'PUT' : 'POST';
     const url = editMode
-      ? `http://localhost:5000/admin/roles/${editingRoleId}`
-      : 'http://localhost:5000/admin/roles';
+      ? `${API_BASE_URL}/admin/roles/${editingRoleId}`
+      : `${API_BASE_URL}/admin/roles`;
 
     const response = await fetch(url, {
       method,
@@ -124,7 +125,7 @@ const handleSubmit = async () => {
       style: 'destructive',
       onPress: async () => {
         try {
-          const response = await fetch(`http://localhost:5000/admin/roles/${roleId}`, {
+          const response = await fetch(`${API_BASE_URL}/admin/roles/${roleId}`, {
             method: 'DELETE',
           });
 

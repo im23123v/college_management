@@ -13,6 +13,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from "../../app/config";
 
 type SemesterGroup = {
   year: number;
@@ -49,10 +50,11 @@ export default function BatchPage() {
   const [semesterData, setSemesterData] = useState<SemesterGroup[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+ 
 
-  const BASE_URL = 'http://localhost:5000/admin/batches';
-  const COURSE_URL = 'http://localhost:5000/admin/courses';
-  const DEPARTMENT_URL = 'http://localhost:5000/admin/departments';
+  const BASE_URL = `${API_BASE_URL}/admin/batches`;
+  const COURSE_URL = `${API_BASE_URL}/admin/courses`;
+  const DEPARTMENT_URL = `${API_BASE_URL}/admin/departments`;
 
   const calculateYears = () => {
     if (!fromDate || !toDate) return 0;

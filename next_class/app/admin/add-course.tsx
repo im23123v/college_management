@@ -2,6 +2,7 @@ import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView } from 're
 import { useEffect, useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from "../../app/config";
 interface Department {
   _id: string;
   name: string;
@@ -23,9 +24,9 @@ export default function AddCourse() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [existingCourses, setExistingCourses] = useState<string[]>([]);
 
-  const API_BASE = 'http://localhost:5000';
+  const API_BASE = API_BASE_URL;
 
-  // Fetch departments
+  
   useEffect(() => {
     fetch(`${API_BASE}/admin/departments`)
       .then(res => res.json())
