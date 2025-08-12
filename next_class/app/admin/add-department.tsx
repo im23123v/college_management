@@ -7,9 +7,9 @@ interface Department {
   name: string;
   description: string;
 }
-import { API_BASE_URL } from "../../config";
 
-const API_BASE = API_BASE_URL;
+
+const API_BASE = "http://192.168.95.223:5000";
 
 export default function AddDepartment() {
   const [code, setCode] = useState('');

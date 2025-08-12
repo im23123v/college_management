@@ -28,7 +28,7 @@ type LeaveType = {
 };
 
 const AdminLeaveSetup = () => {
-  const API_URL = API_BASE_URL;
+  const API_URL = "http://192.168.95.223:5000";
  
 
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);

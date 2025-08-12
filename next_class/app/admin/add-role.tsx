@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Checkbox, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "../../config";
+
 interface Role {
   _id: string;
   name: string;
@@ -31,7 +31,7 @@ const CreateRole = () => {
 
   const [editMode, setEditMode] = useState(false);
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
-
+  const API_BASE_URL = "http://192.168.95.223:5000"
   const togglePermission = (
     roleId: string,
     state: string[],

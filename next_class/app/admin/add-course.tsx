@@ -24,7 +24,7 @@ export default function AddCourse() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [existingCourses, setExistingCourses] = useState<string[]>([]);
 
-  const API_BASE = API_BASE_URL;
+ const API_BASE = "http://192.168.95.223:5000"
 
   
   useEffect(() => {

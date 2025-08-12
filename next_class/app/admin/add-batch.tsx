@@ -13,7 +13,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "../../config";
+
 
 type SemesterGroup = {
   year: number;
@@ -51,6 +51,7 @@ export default function BatchPage() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
  
+const API_BASE_URL = "http://192.168.95.223:5000"
 
   const BASE_URL = `${API_BASE_URL}/admin/batches`;
   const COURSE_URL = `${API_BASE_URL}/admin/courses`;
