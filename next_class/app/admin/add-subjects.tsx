@@ -12,7 +12,7 @@ import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import MultiSelect from "react-native-multiple-select";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE_URL } from "../../app/config";
+import { API_BASE_URL } from "../../config";
 
 interface Department {
   _id: string;

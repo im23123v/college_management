@@ -13,7 +13,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "../../app/config";
+import { API_BASE_URL } from "../../config";
 
 type SemesterGroup = {
   year: number;

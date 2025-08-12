@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import { Checkbox } from "react-native-paper";
-import { API_BASE_URL } from "../../app/config";
+import { API_BASE_URL } from "../../config";
 
 interface Role {
   _id: string;

@@ -13,7 +13,7 @@ import {
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { API_BASE_URL } from "../../app/config";
+import { API_BASE_URL } from "../../config";
 type Allocation = {
   role: string;
   count: number;

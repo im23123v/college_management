@@ -30,7 +30,6 @@ app.get('/', (req, res) => {
   res.send('🚀 Backend server is running!');
 });
 
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port 5000");
 });

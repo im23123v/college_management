@@ -2,7 +2,7 @@ import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView } from 're
 import { useEffect, useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "../../app/config";
+import { API_BASE_URL } from "../../config";
 interface Department {
   _id: string;
   name: string;

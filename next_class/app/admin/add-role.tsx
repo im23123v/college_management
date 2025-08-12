@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Checkbox, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "../../app/config";
+import { API_BASE_URL } from "../../config";
 interface Role {
   _id: string;
   name: string;

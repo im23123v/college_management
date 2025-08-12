@@ -7,7 +7,7 @@ interface Department {
   name: string;
   description: string;
 }
-import { API_BASE_URL } from "../../app/config";
+import { API_BASE_URL } from "../../config";
 
 const API_BASE = API_BASE_URL;
 
