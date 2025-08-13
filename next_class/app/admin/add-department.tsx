@@ -70,6 +70,10 @@ export default function AddDepartment() {
       await fetch(`${API_BASE}/admin/departments/${id}`, {
         method: 'DELETE',
       });
+
+      if (editingId === id) {
+       clearForm();
+      }
       fetchDepartments();
     } catch (err) {
       console.error('Error deleting department:', err);
@@ -114,6 +118,13 @@ export default function AddDepartment() {
         title={editingId ? 'Update Department' : 'Add Department'}
         onPress={handleSubmit}
       />
+      {editingId && (
+      <Button
+        title="Cancel Edit"
+        color="#6c757d"
+        onPress={clearForm}
+      />
+)}
 
       <FlatList
         data={departments}

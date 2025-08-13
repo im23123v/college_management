@@ -1,45 +1,45 @@
-const User = require('../models/user');
+const Batch = require('../models/batch');
 
-exports.findUserByEmail = async (email) => {
-  return await User.findOne({ email }).populate('role');
-};
-
-exports.findUserByIdentifier = async (identifier) => {
-  return await User.findOne({
-    $or: [
-      { email: identifier },
-      { userId: identifier }
-    ]
-  }).populate('role'); 
-};
-
-async function getUsers(search) {
+// Create a batch
+async function createBatch(batchData) {
   try {
-    let query = {};
-    if (search && search.trim() !== "") {
-      query = { name: { $regex: search, $options: "i" } }; 
-    }
-    return await User.find(query);
+    const batch = new Batch(batchData);
+    return await batch.save();
   } catch (err) {
-    throw new Error(err.message);
+    throw new Error(`Error creating batch: ${err.message}`);
   }
 }
 
-exports.getUsers = getUsers; 
+// Get all batches
+async function getAllBatches() {
+  try {
+    return await Batch.find();
+  } catch (err) {
+    throw new Error(`Error fetching batches: ${err.message}`);
+  }
+}
 
-exports.createUser = async (userData) => {
-  const user = new User(userData);
-  return await user.save();
-};
+// Update batch by ID
+async function updateBatchById(id, updateData) {
+  try {
+    return await Batch.findByIdAndUpdate(id, updateData, { new: true });
+  } catch (err) {
+    throw new Error(`Error updating batch: ${err.message}`);
+  }
+}
 
-exports.getAllUsers = async () => {
-  return await User.find().populate('role').populate('department');
-};
+// Delete batch by ID
+async function deleteBatchById(id) {
+  try {
+    return await Batch.findByIdAndDelete(id);
+  } catch (err) {
+    throw new Error(`Error deleting batch: ${err.message}`);
+  }
+}
 
-exports.deleteUserById = async (id) => {
-  return await User.findByIdAndDelete(id);
-};
-
-exports.updateUserById = async (id, updateData) => {
-  return await User.findByIdAndUpdate(id, updateData, { new: true });
+module.exports = {
+  createBatch,
+  getAllBatches,
+  updateBatchById,
+  deleteBatchById
 };

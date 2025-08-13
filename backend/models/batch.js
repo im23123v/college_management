@@ -13,11 +13,11 @@ const SemesterGroupSchema = new mongoose.Schema({
 
 const BatchSchema = new mongoose.Schema({
   collegeCode: {
-  type: String,
-  required: true,
-  uppercase: true,
-  trim: true,
-},
+    type: String,
+    required: true,
+    uppercase: true,
+    trim: true,
+  },
   course: { type: String, required: true },
   department: { type: String, required: true },
   fromDate: { type: Date, required: true },
@@ -27,4 +27,5 @@ const BatchSchema = new mongoose.Schema({
   semesterData: [SemesterGroupSchema],
 }, { timestamps: true });
 
+// Capitalize model name to follow convention
 module.exports = mongoose.model('Batch', BatchSchema);
