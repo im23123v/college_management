@@ -8,10 +8,16 @@ const {
 // Create Batch
 exports.createBatch = async (req, res) => {
   try {
-      const {identifier, course,department,fromDate ,toDate,hasSemester,emestersPerYear,semesterData}=req.body;
+      const {identifier, course,department,fromDate ,toDate,hasSemester,semestersPerYear,semesterData}=req.body;
 
-       const Collegecode=developer.getCollegeCodeByIdentifier(identifier);
-    const batch = await createBatch({Collegecode,course,department,fromDate ,toDate,hasSemester,emestersPerYear,semesterData});
+      console.log("batch controll:",req.body);
+
+       const collegeCode =await developer.getCollegeCodeByIdentifier(identifier);
+
+      console.log("collegecode",Collegecode);
+
+    const batch = await createBatch({collegeCode,course,department,fromDate ,toDate,hasSemester,semestersPerYear,semesterData});
+
     res.status(201).json(batch);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create batch', message: err.message });

@@ -15,7 +15,7 @@ export default function Login() {
   const [userId, setUserId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const router = useRouter();
-    const BASE_URL = 'http://localhost:5000';
+   const BASE_URL = 'http://192.168.95.223:5000';
 
 const handleLogin = async () => {
   if (!userId || !password) {

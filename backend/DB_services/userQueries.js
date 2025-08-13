@@ -1,19 +1,17 @@
 const User = require('../models/user');
 
-exports.findUserByEmail = async (email) => {
+async function findUserByEmail(email) {
   return await User.findOne({ email }).populate('role');
-};
+}
 
-
-exports.findUserByIdentifier = async (identifier) => {
+async function findUserByIdentifier(identifier) {
   return await User.findOne({
     $or: [
       { email: identifier },
       { userId: identifier }
     ]
   }).populate('role'); 
-};
-
+}
 
 async function getUsers(search) {
   try {
@@ -27,22 +25,29 @@ async function getUsers(search) {
   }
 }
 
-module.exports = { getUsers };
-
-
-exports.createUser = async (userData) => {
+async function createUser(userData) {
   const user = new User(userData);
   return await user.save();
-};
+}
 
-exports.getAllUsers = async () => {
+async function getAllUsers() {
   return await User.find().populate('role').populate('department');
-};
+}
 
-exports.deleteUserById = async (id) => {
+async function deleteUserById(id) {
   return await User.findByIdAndDelete(id);
-};
+}
 
-exports.updateUserById = async (id, updateData) => {
+async function updateUserById(id, updateData) {
   return await User.findByIdAndUpdate(id, updateData, { new: true });
+}
+
+module.exports = {
+  findUserByEmail,
+  findUserByIdentifier,
+  getUsers,
+  createUser,
+  getAllUsers,
+  deleteUserById,
+  updateUserById
 };

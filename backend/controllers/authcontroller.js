@@ -12,11 +12,15 @@ const loginUser = async (req, res) => {
 
     const user = await userQueries.findUserByIdentifier(identifier);
 
-   console.log(user);
+   console.log("authcontroller:", user);
     
     if (!user) {
       return res.status(400).json({ msg: 'Invalid email/userId or password' });
     }
+
+    console.log("password:",password);
+
+    console.log("user.passowrd",user.password);
 
     if (password!==user.password) {
       return res.status(400).json({ msg: 'Invalid email/userId or password' });
