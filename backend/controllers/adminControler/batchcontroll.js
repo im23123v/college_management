@@ -5,18 +5,17 @@ const {
   deleteBatchById,
 } = require('../../DB_services/batchQueries');
 
-// Create Batch
 exports.createBatch = async (req, res) => {
   try {
-      const {identifier, course,department,fromDate ,toDate,hasSemester,semestersPerYear,semesterData}=req.body;
+    const { identifier, course, department, fromDate, toDate, hasSemester, semestersPerYear, semesterData } = req.body;
 
-      console.log("batch controll:",req.body);
+    console.log("batch controll:", req.body);
 
-       const collegeCode =await developer.getCollegeCodeByIdentifier(identifier);
+    const collegeCode = await developer.getCollegeCodeByIdentifier(identifier);
 
-      console.log("collegecode",Collegecode);
-
-    const batch = await createBatch({collegeCode,course,department,fromDate ,toDate,hasSemester,semestersPerYear,semesterData});
+    console.log("collegeCode", collegeCode);
+      
+    const batch = await createBatch({ collegeCode, course, department, fromDate, toDate, hasSemester, semestersPerYear, semesterData });
 
     res.status(201).json(batch);
   } catch (err) {
