@@ -10,12 +10,13 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '@env';
 
 export default function Login() {
   const [userId, setUserId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const router = useRouter();
-   const BASE_URL = 'http://192.168.95.223:5000';
+ 
 
 const handleLogin = async () => {
   if (!userId || !password) {

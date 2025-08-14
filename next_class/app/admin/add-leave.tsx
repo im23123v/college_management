@@ -14,6 +14,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_BASE_URL } from "../../config";
+import { BASE_URL } from '@env';
 type Allocation = {
   role: string;
   count: number;
@@ -28,7 +29,7 @@ type LeaveType = {
 };
 
 const AdminLeaveSetup = () => {
-  const API_URL = "http://192.168.95.223:5000";
+ 
  
 
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
@@ -41,7 +42,7 @@ const [allocations, setAllocations] = useState<{ [role: string]: number }>({});
 
   const fetchLeaveTypes = async () => {
     try {
-      const res = await axios.get(`${API_URL}/admin/leave-types`);
+      const res = await axios.get(`${BASE_URL}/admin/leave-types`);
       setLeaveTypes(res.data);
     } catch (error) {
       console.error('Failed to fetch leave types', error);
@@ -56,7 +57,7 @@ const [allocations, setAllocations] = useState<{ [role: string]: number }>({});
 
   const fetchRoles = async () => {
   try {
-    const res = await axios.get(`${API_URL}/admin/roles`);
+    const res = await axios.get(`${BASE_URL}/admin/roles`);
     const roles = res.data;
     setRoleList(roles);
 
@@ -112,10 +113,10 @@ const resetForm = () => {
 
     try {
       if (editingId) {
-        await axios.put(`${API_URL}/admin/leave-types/${editingId}`, payload);
+        await axios.put(`${BASE_URL}/admin/leave-types/${editingId}`, payload);
         Alert.alert('Success', 'Leave type updated.');
       } else {
-        await axios.post(API_URL, payload);
+        await axios.post(BASE_URL, payload);
         Alert.alert('Success', 'Leave type added.');
       }
 
@@ -149,7 +150,7 @@ const resetForm = () => {
         style: 'destructive',
         onPress: async () => {
           try {
-            await axios.delete(`${API_URL}/admin/leave-types/${id}`);
+            await axios.delete(`${BASE_URL}/admin/leave-types/${id}`);
             Alert.alert('Deleted', 'Leave type deleted.');
             fetchLeaveTypes();
           } catch (error) {

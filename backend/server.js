@@ -10,7 +10,7 @@ require('dotenv').config();
 
 
 app.use(cors({
-  origin: 'http://192.168.95.223:8081', 
+  origin: 'http:localhost:8081', 
   credentials: true,
 }));
 app.use(express.json()); 

@@ -12,8 +12,8 @@ import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import MultiSelect from "react-native-multiple-select";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE_URL } from "../../config";
 
+import { BASE_URL } from '@env';
 interface Department {
   _id: string;
   name: string;
@@ -43,7 +43,7 @@ interface Subject {
   teacherIds: string[];
 }
 
-const API_BASE = "http://192.168.95.223:5000"; // Replace with your local IP if testing on device
+
 
 const SubjectManagement = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -75,7 +75,7 @@ const SubjectManagement = () => {
 
   const fetchDepartments = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/admin/departments`);
+      const res = await axios.get(`${BASE_URL}/admin/departments`);
       setDepartments(res.data);
     } catch (err) {
       console.error("Error fetching departments", err);
@@ -84,7 +84,7 @@ const SubjectManagement = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/admin/courses`);
+      const res = await axios.get(`${BASE_URL}/admin/courses`);
       setCourses(res.data);
     } catch (err) {
       console.error("Error fetching courses", err);
@@ -93,7 +93,7 @@ const SubjectManagement = () => {
 
   const fetchTeachers = async (department: string) => {
     try {
-      const res = await axios.get(`${API_BASE}/admin/teachers?department=${department}`);
+      const res = await axios.get(`${BASE_URL}/admin/teachers?department=${department}`);
       setTeachers(res.data);
     } catch (err) {
       console.error("Error fetching teachers", err);
@@ -102,7 +102,7 @@ const SubjectManagement = () => {
 
   const fetchSubjects = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/admin/subjects`);
+      const res = await axios.get(`${BASE_URL}/admin/subjects`);
       setSubjects(res.data);
     } catch (err) {
       console.error("Error fetching subjects", err);
@@ -124,9 +124,9 @@ const SubjectManagement = () => {
 
     try {
       if (isEditing && editingId) {
-        await axios.put(`${API_BASE}/admin/subjects/${editingId}`, subject);
+        await axios.put(`${BASE_URL}/admin/subjects/${editingId}`, subject);
       } else {
-        await axios.post(`${API_BASE}/admin/subjects`, subject);
+        await axios.post(`${BASE_URL}/admin/subjects`, subject);
       }
       clearForm();
       fetchSubjects();
@@ -159,7 +159,7 @@ const SubjectManagement = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`${API_BASE}/admin/subjects/${id}`);
+      await axios.delete(`${BASE_URL}/admin/subjects/${id}`);
       setSubjects(subjects.filter((s) => s._id !== id));
     } catch (err) {
       console.error("Error deleting subject", err);

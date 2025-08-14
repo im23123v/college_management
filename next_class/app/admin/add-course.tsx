@@ -2,7 +2,7 @@ import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView } from 're
 import { useEffect, useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "../../config";
+import { BASE_URL } from '@env';
 interface Department {
   _id: string;
   name: string;
@@ -24,11 +24,10 @@ export default function AddCourse() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [existingCourses, setExistingCourses] = useState<string[]>([]);
 
- const API_BASE = "http://192.168.95.223:5000"
 
   
   useEffect(() => {
-    fetch(`${API_BASE}/admin/departments`)
+    fetch(`${BASE_URL}/admin/departments`)
       .then(res => res.json())
       .then(data => setDepartments(data))
       .catch(err => console.error('Error fetching departments:', err));
@@ -36,7 +35,7 @@ export default function AddCourse() {
 
   // Fetch all courses
   const fetchCourses = () => {
-    fetch(`${API_BASE}/admin/courses`)
+    fetch(`${BASE_URL}/admin/courses`)
       .then(res => res.json())
       .then(data => setCourses(data))
       .catch(err => console.error('Error fetching courses:', err));
@@ -53,7 +52,7 @@ export default function AddCourse() {
 
   const checkDepartment = async (deptId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/admin/courses/by-department/${deptId}`);
+      const res = await fetch(`${BASE_URL}/admin/courses/by-department/${deptId}`);
       const data = await res.json();
       if (data.length > 0) {
         setExistingCourses(data.map((course: any) => course.courseName));
@@ -75,8 +74,8 @@ export default function AddCourse() {
     };
 
     const url = editingId
-      ? `${API_BASE}/admin/courses/${editingId}`
-      : `${API_BASE}/admin/courses`;
+      ? `${BASE_URL}/admin/courses/${editingId}`
+      : `${BASE_URL}/admin/courses`;
     const method = editingId ? 'PUT' : 'POST';
 
     try {
@@ -118,7 +117,7 @@ export default function AddCourse() {
         text: 'Delete',
         onPress: async () => {
           try {
-            await fetch(`${API_BASE}/admin/courses/${id}`, {
+            await fetch(`${BASE_URL}/admin/courses/${id}`, {
               method: 'DELETE',
             });
             Alert.alert('Deleted', 'Course deleted successfully!');

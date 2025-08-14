@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import axios from "axios";
 import { Checkbox } from "react-native-paper";
-import { API_BASE_URL } from "../../config";
 
+import { BASE_URL } from '@env';
 interface Role {
   _id: string;
   name: string;
@@ -44,7 +44,7 @@ export default function AddUser() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const API_BASE = API_BASE_URL;
+
 
   useEffect(() => {
     fetchAll(searchQuery);
@@ -54,9 +54,9 @@ export default function AddUser() {
     try {
       console.log("Fetching data...");
       const [rolesRes, departmentsRes, usersRes] = await Promise.all([
-        axios.get(`${API_BASE}/admin/roles`),
-        axios.get(`${API_BASE}/admin/departments`),
-        axios.get(`${API_BASE}/admin/users`, {
+        axios.get(`${BASE_URL}/admin/roles`),
+        axios.get(`${BASE_URL}/admin/departments`),
+        axios.get(`${BASE_URL}/admin/users`, {
           params: query ? { search: query } : {},
         }),
       ]);
@@ -83,10 +83,10 @@ export default function AddUser() {
       const userPayload = { identifier, name, email, role, department };
 
       if (editingUserId) {
-        await axios.put(`${API_BASE}/admin/users/${editingUserId}`, userPayload);
+        await axios.put(`${BASE_URL}/admin/users/${editingUserId}`, userPayload);
         Alert.alert("User updated successfully!");
       } else {
-        await axios.post(`${API_BASE}/admin/users`, userPayload);
+        await axios.post(`${BASE_URL}/admin/users`, userPayload);
         Alert.alert("User added successfully!");
       }
 
@@ -116,7 +116,7 @@ export default function AddUser() {
         text: "Delete",
         onPress: async () => {
           try {
-            await axios.delete(`${API_BASE}/admin/users/${id}`);
+            await axios.delete(`${BASE_URL}/admin/users/${id}`);
             fetchAll(searchQuery);
           } catch (err) {
             console.error("Error deleting user", err);

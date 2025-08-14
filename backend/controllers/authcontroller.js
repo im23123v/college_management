@@ -4,10 +4,11 @@ const jwt = require('jsonwebtoken');
 const userQueries = require('../DB_services/userQueries');
 
 const loginUser = async (req, res) => {
-  const { identifier, password } = req.body; // identifier = email or userId
+  const { identifier, password } = req.body;
 
   try {
-    // Find user by email or userId
+  
+    
     console.log(identifier);
 
     const user = await userQueries.findUserByIdentifier(identifier);

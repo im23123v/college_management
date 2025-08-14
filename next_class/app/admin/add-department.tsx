@@ -1,6 +1,8 @@
 import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '@env';
+
 interface Department {
   _id: string;
   code: string;
@@ -9,7 +11,7 @@ interface Department {
 }
 
 
-const API_BASE = "http://192.168.95.223:5000";
+
 
 export default function AddDepartment() {
   const [code, setCode] = useState('');
@@ -26,7 +28,7 @@ export default function AddDepartment() {
 
   const fetchDepartments = async () => {
     try {
-      const res = await fetch(`${API_BASE}/admin/departments`);
+      const res = await fetch(`${BASE_URL}/admin/departments`);
       const data = await res.json();
       setDepartments(data);
     } catch (err) {
@@ -40,7 +42,7 @@ export default function AddDepartment() {
     const department = { identifier,code, name, description };
 
     try {
-      const res = await fetch(`${API_BASE}/admin/departments${editingId ? `/${editingId}` : ''}`, {
+      const res = await fetch(`${BASE_URL}/admin/departments${editingId ? `/${editingId}` : ''}`, {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(department),
@@ -67,7 +69,7 @@ export default function AddDepartment() {
 
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/admin/departments/${id}`, {
+      await fetch(`${BASE_URL}/admin/departments/${id}`, {
         method: 'DELETE',
       });
 

@@ -13,6 +13,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '@env';
 
 
 type SemesterGroup = {
@@ -51,11 +52,11 @@ export default function BatchPage() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
  
-const API_BASE_URL = "http://192.168.95.223:5000"
 
-  const BASE_URL = `${API_BASE_URL}/admin/batches`;
-  const COURSE_URL = `${API_BASE_URL}/admin/courses`;
-  const DEPARTMENT_URL = `${API_BASE_URL}/admin/departments`;
+
+  
+  const COURSE_URL = `${BASE_URL}/admin/courses`;
+  const DEPARTMENT_URL = `${BASE_URL}/admin/departments`;
 
   const calculateYears = () => {
     if (!fromDate || !toDate) return 0;
@@ -94,7 +95,7 @@ const API_BASE_URL = "http://192.168.95.223:5000"
 
   const fetchBatches = async () => {
     try {
-      const res = await fetch(BASE_URL);
+      const res = await fetch(`${BASE_URL}/admin/batches`);
       if (!res.ok) throw new Error('Failed to fetch batches');
       const data = await res.json();
       setBatches(data);
