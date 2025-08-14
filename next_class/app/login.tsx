@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '@env';
+// import { BASE_URL } from '@env';
 
 export default function Login() {
   const [userId, setUserId] = useState<string>('');
@@ -23,10 +23,12 @@ const handleLogin = async () => {
     Alert.alert('Error', 'Please enter both Email/User ID and Password');
     return;
   }
-
+ console.log("http://localhost:5000/auth/login");
 
   try {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
+   
+
+    const res = await fetch(`http://localhost:5000/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

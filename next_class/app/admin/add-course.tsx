@@ -2,7 +2,7 @@ import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView } from 're
 import { useEffect, useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '@env';
+// import { BASE_URL } from '@env';
 interface Department {
   _id: string;
   name: string;
@@ -23,7 +23,7 @@ export default function AddCourse() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [existingCourses, setExistingCourses] = useState<string[]>([]);
-
+  const BASE_URL="";
 
   
   useEffect(() => {
