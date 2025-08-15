@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import { Checkbox } from "react-native-paper";
-import { API_BASE_URL } from "../../config";
+
 
 interface Role {
   _id: string;
@@ -44,7 +44,7 @@ export default function AddUser() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const API_BASE = API_BASE_URL;
+  const API_BASE = "http://localhost:5000";
 
   useEffect(() => {
     fetchAll(searchQuery);

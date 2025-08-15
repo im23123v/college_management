@@ -51,7 +51,7 @@ export default function BatchPage() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
  
-const API_BASE_URL = "http://192.168.95.223:5000"
+const API_BASE_URL = "http://localhost:5000"
 
   const BASE_URL = `${API_BASE_URL}/admin/batches`;
   const COURSE_URL = `${API_BASE_URL}/admin/courses`;
