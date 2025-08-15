@@ -1,0 +1,33 @@
+[33mf22920e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfirst_feature[m[33m, [m[1;31morigin/first_feature[m[33m)[m deleted .env files
+[33m57c6031[m added the .env file in frontend
+[33ma5769d0[m cleared some errors
+[33m1a0f423[m updated the  error related to moblie
+[33m5740ecf[m updated the  error related to moblie
+[33mec06929[m removed errors in moblie rendering
+[33meb7a782[m removed errors in user control
+[33m72152af[m removing the error related the phone
+[33mc63a5ee[m solved error about the moblie loading error
+[33mc0d9b40[m updated and clearly error in add-subjects
+[33m65b1e56[m testing the admin files
+[33m7bcea35[m updated the backend and frontend by adding the college code for every data
+[33m0aa1882[m testing the backend
+[33md4aeabc[m testing the backend
+[33m554a092[m corrected all errors in backend
+[33m3a132d7[m added nodemailer at  backend
+[33m1f5d7bb[m connected the subjects page to backend ok
+[33m62f2784[m corrected some feilds in department frontend
+[33m75f48f1[m corrected some feilds in frontend
+[33md7e5a52[m connected backend and frontend for leave-type  page
+[33m4311127[m connected backend and frontend for department page
+[33m6a13188[m connected backend and frontend for course page
+[33m39ad834[m connected backend and front end in user page
+[33mddaa550[m connected the role to backend and checked
+[33mc7b7c49[m added the index.tsx file in developer folder
+[33mb5a78a4[m connected the developer backend
+[33m13fa0ec[m added batch backedn controller and query
+[33m1aadfc8[m changed name of the sunjects file
+[33mb1f66cb[m added subjects page and updated batch page
+[33m1feb9a6[m added subjects page and updated batch page
+[33m2744978[m added new batch page in frontend
+[33m6c7d467[m added edit and delete modes to user role department
+[33m852f453[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/chat_setting[m[33m, [m[1;32mmaster[m[33m, [m[1;32mmain[m[33m, [m[1;32mchat_setting[m[33m)[m upload the first segment of code

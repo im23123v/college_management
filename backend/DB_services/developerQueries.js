@@ -18,18 +18,27 @@ async function getCollegeCodeByIdentifier(identifier) {
   return college.code;
 }
 
-async function createCollegeInDB(name, code, adminEmail) {
-  const college = new College({ name, code, adminEmail });
+async function createCollegeInDB(name, code, userId, adminEmail) {
+  const college = new College({
+    name,        // matches schema
+    code,        // matches schema
+    userId,      // matches schema
+    adminEmail,  // matches schema
+  });
+
   await college.save();
   return college;
 }
+
+ 
+
 
 async function findCollegeByCode(code) {
   return await College.findOne({ code });
 }
 
 async function getAllColleges() {
-  return await College.find({}, 'name code adminEmail createdAt');
+  return await College.find({}, 'name code  userId adminEmail createdAt');
 }
 
 module.exports = {

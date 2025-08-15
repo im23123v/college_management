@@ -30,10 +30,10 @@ exports.createCollege = async (req, res) => {
 
     const plainPassword = generatePassword();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-    const college = await createCollegeInDB(collegeName, code, email);
-
     const userId = generateRandom(6);
+   const college = await createCollegeInDB(collegeName, code, userId, email);
+
+    
    
 const roleDoc = await Role.findOne({ name: 'college-admin' });
 const departmentDoc = await Department.findOne({ name: 'ALL' });
@@ -46,6 +46,7 @@ const role = roleDoc._id;
 const department = departmentDoc._id;
 
     const user = await userQueries.createUser({
+      collegeCode:code,
       userId,
       name: adminName,
       email,
@@ -53,6 +54,9 @@ const department = departmentDoc._id;
       role,
       department,
     });
+
+   
+
 
     await sendEmail(email, 'Your College Admin Credentials', `
       Your college "${collegeName}" has been registered.

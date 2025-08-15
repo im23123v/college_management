@@ -43,7 +43,7 @@ interface Subject {
   teacherIds: string[];
 }
 
-const API_BASE = "http://192.168.95.223:5000"; // Replace with your local IP if testing on device
+const API_BASE = "http://localhost:5000"; // Replace with your local IP if testing on device
 
 const SubjectManagement = () => {
   const [departments, setDepartments] = useState<Department[]>([]);

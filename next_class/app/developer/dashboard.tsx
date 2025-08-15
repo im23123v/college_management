@@ -28,7 +28,9 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const response = await axios.get<College[]>('http://localhost:5000/api/developer/colleges'); 
+        console.log("developer dash board");
+        const response = await axios.get<College[]>('http://localhost:5000/developer/colleges'); 
+
         setCollegesList(response.data);
         setLoading(false);
       } catch (error) {
