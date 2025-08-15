@@ -41,6 +41,18 @@ async function getAllColleges() {
   return await College.find({}, 'name code  userId adminEmail createdAt');
 }
 
+
+
+exports.getCollegeCodeByAdminEmail = async (adminEmail) => {
+  const college = await College.findOne({
+    adminEmail: adminEmail.toLowerCase().trim()
+  }).select('code'); 
+
+  return college ? college.code : null;
+};
+
+
+
 module.exports = {
   getCollegeCodeByIdentifier,
   createCollegeInDB,

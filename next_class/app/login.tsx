@@ -42,6 +42,8 @@ const handleLogin = async () => {
     }
     await AsyncStorage.setItem('token', data.token);
     await AsyncStorage.setItem('email', data.identifier); 
+    await AsyncStorage.setItem('collegeCode', data.collegeCode);
+
     switch (data.user.role.name) {
       case 'developer':
         router.push('/developer');

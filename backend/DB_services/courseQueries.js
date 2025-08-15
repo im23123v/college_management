@@ -4,8 +4,12 @@ exports.createCourse = async (courseData) => {
   return await Course.create(courseData);
 };
 
-exports.getAllCourses = async () => {
-  return await Course.find().populate('departmentId');
+exports.getCoursesByCollegeCode = async (collegeCode) => {
+  let filter = {};
+  if (collegeCode) {
+    filter.collegeCode = collegeCode.toUpperCase();
+  }
+  return await Course.find(filter).populate('departmentId');
 };
 
 exports.getCoursesByDepartment = async (deptId) => {

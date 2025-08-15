@@ -2,7 +2,8 @@ import { View, TextInput, Button, StyleSheet, Text, Alert, ScrollView } from 're
 import { useEffect, useState } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "../../config";
+
+import { fetchCourses } from '../api'
 interface Department {
   _id: string;
   name: string;
@@ -35,17 +36,15 @@ export default function AddCourse() {
   }, []);
 
   // Fetch all courses
-  const fetchCourses = () => {
-    fetch(`${API_BASE}/admin/courses`)
-      .then(res => res.json())
-      .then(data => setCourses(data))
-      .catch(err => console.error('Error fetching courses:', err));
-  };
+   useEffect(() => {
+    const loadCourses = async () => {
+      const data = await fetchCourses();
+      setCourses(data);
+      
+    };
 
-  useEffect(() => {
-    fetchCourses();
+    loadCourses();
   }, []);
-
   const handleDeptChange = (deptId: string) => {
     setSelectedDept(deptId);
     checkDepartment(deptId);

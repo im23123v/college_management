@@ -1,6 +1,7 @@
 import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchDepartments } from '../api';
 interface Department {
   _id: string;
   code: string;
@@ -20,19 +21,17 @@ export default function AddDepartment() {
 
   const handleNameChange = (text: string) => setName(text.toUpperCase());
 
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
 
-  const fetchDepartments = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/admin/departments`);
-      const data = await res.json();
-      setDepartments(data);
-    } catch (err) {
-      console.error('Error fetching departments:', err);
-    }
-  };
+
+  useEffect(() => {
+     const loadDepartments = async () => {
+       const data = await fetchDepartments();
+       setDepartments(data);
+       
+     };
+ 
+     loadDepartments();
+   }, []);
 
   const handleSubmit = async () => {
     if (!code || !name) return;

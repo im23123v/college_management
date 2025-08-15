@@ -54,11 +54,15 @@ const CreateRole = () => {
     setEditingRoleId(null);
   };
 const [roles, setRoles] = useState<Role[]>([]);
-
 useEffect(() => {
   const fetchRoles = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/roles`);
+      const collegeCode = await AsyncStorage.getItem('collegeCode');
+      if (!collegeCode) return;
+
+      const response = await fetch(`${API_BASE_URL}/admin/roles?collegeCode=${encodeURIComponent(collegeCode)}`);
+      if (!response.ok) throw new Error('Failed to fetch roles');
+
       const data = await response.json();
       setRoles(data);
     } catch (err) {
@@ -68,7 +72,6 @@ useEffect(() => {
 
   fetchRoles();
 }, []);
-
 const handleSubmit = async () => {
   if (!roleName.trim()) return;
   const email = await AsyncStorage.getItem('email');

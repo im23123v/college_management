@@ -1,28 +1,21 @@
-// controllers/authController.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userQueries = require('../DB_services/userQueries');
+const College = require('../models/college');
 
 const loginUser = async (req, res) => {
-  const { identifier, password } = req.body; // identifier = email or userId
+  const { identifier, password } = req.body; // identifier can be email or userId
 
   try {
     // Find user by email or userId
-    console.log(identifier);
-
     const user = await userQueries.findUserByIdentifier(identifier);
 
-   console.log("authcontroller:", user);
-    
     if (!user) {
       return res.status(400).json({ msg: 'Invalid email/userId or password' });
     }
 
-    console.log("password:",password);
-
-    console.log("user.passowrd",user.password);
-
-    if (password!==user.password) {
+    // Compare password (plain text — if hashed, use bcrypt.compare)
+    if (password !== user.password) {
       return res.status(400).json({ msg: 'Invalid email/userId or password' });
     }
 
@@ -33,10 +26,27 @@ const loginUser = async (req, res) => {
       { expiresIn: '7d' }
     );
 
+   
+    let collegeCode = null;
+    let college = null;
+
+    if (identifier.includes('@')) {
+      
+      college = await College.findOne({ adminEmail: identifier.toLowerCase().trim() }).select('code');
+    } else {
+      
+      college = await College.findOne({ userId: identifier.trim() }).select('code');
+    }
+
+    if (college) {
+      collegeCode = college.code;
+    }
+
     res.json({
       token,
       user,
-      identifier
+      identifier,
+      collegeCode 
     });
 
   } catch (err) {

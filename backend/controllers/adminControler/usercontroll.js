@@ -1,6 +1,10 @@
 const userQueries = require('../../DB_services/userQueries');
 const sendEmail = require('../../utils/emailService');
 const developer=require('../../DB_services/developerQueries');
+const { getRoleByCollegeAndName } = require('../../DB_services/roleQueries');
+const { getUsersByRoleIdAndCollege } = require('../../DB_services/userQueries');
+
+
 function generateRandom(length = 8) {
   return Math.random().toString(36).slice(2, 2 + length);
 }
@@ -98,5 +102,30 @@ exports.updateUser = async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update user' });
+  }
+};
+
+
+
+
+exports.getUsersByRoleAndCollege = async (req, res) => {
+  try {
+    const { collegeCode, roleName } = req.query;
+
+    if (!collegeCode || !roleName) {
+      return res.status(400).json({ message: 'collegeCode and roleName are required' });
+    }
+
+    
+    const role = await getRoleByCollegeAndName(collegeCode, roleName);
+    if (!role) return res.status(404).json({ message: `Role "${roleName}" not found` });
+
+  
+    const users = await getUsersByRoleIdAndCollege(role._id, collegeCode);
+
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

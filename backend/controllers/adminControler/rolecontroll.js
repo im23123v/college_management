@@ -25,17 +25,20 @@ exports.createRole = async (req, res) => {
 
 
 
-exports.getAllRoles = async (req, res) => {
+exports.getRolesByCollege = async (req, res) => {
   try {
-    const roles = await roleQueries.getAllRoles();
-    console.log("in rolecontrolpage:  ",roles);
+    const { collegeCode } = req.query; 
+    if (!collegeCode) {
+      return res.status(400).json({ message: 'College code is required' });
+    }
+
+    const roles = await roleQueries.getAllRolesByCollege(collegeCode);
     res.json(roles);
   } catch (err) {
     console.error('Error fetching roles:', err);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 
 exports.updateRole = async (req, res) => {
@@ -61,7 +64,7 @@ exports.updateRole = async (req, res) => {
   }
 };
 
-// DELETE Role
+
 exports.deleteRole = async (req, res) => {
   try {
     const roleId = req.params.id;

@@ -4,6 +4,9 @@ const Role=require('../../models/role');
 const Department=require('../../models/department');
 const bcrypt = require('bcryptjs');
 const userQueries = require('../../DB_services/userQueries');
+const Course = require('../../models/course');
+const College = require('../../models/college');
+
 
 const {
   createCollegeInDB,
@@ -101,4 +104,38 @@ exports.getColleges = async (req, res) => {
 
 
 
+const { getCollegeCodeByAdminEmail } = require('../../DB_services/developerQueries');
 
+exports.getCollegeCode = async (req, res) => {
+  try {
+    const { adminEmail } = req.query;
+    if (!adminEmail) {
+      return res.status(400).json({ error: 'adminEmail is required' });
+    }
+
+    const code = await getCollegeCodeByAdminEmail(adminEmail);
+    if (!code) {
+      return res.status(404).json({ error: 'College not found' });
+    }
+
+    res.status(200).json({ collegeCode: code });
+  } catch (error) {
+    console.error('Error fetching college code:', error);
+    res.status(500).json({ error: 'Error fetching college code' });
+  }
+};
+
+
+
+
+
+exports.getCoursesByAdminEmail = async (adminEmail) => {
+  // Step 1: Find the college by admin email
+  const college = await College.findOne({ adminEmail: adminEmail.toLowerCase().trim() });
+  if (!college) {
+    return [];
+  }
+
+  // Step 2: Find all courses with that college code
+  return await Course.find({ collegeCode: college.code }).populate('departmentId');
+};

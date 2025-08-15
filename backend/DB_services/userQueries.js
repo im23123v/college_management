@@ -30,9 +30,7 @@ async function createUser(userData) {
   return await user.save();
 }
 
-async function getAllUsers() {
-  return await User.find().populate('role').populate('department');
-}
+
 
 async function deleteUserById(id) {
   return await User.findByIdAndDelete(id);
@@ -42,12 +40,27 @@ async function updateUserById(id, updateData) {
   return await User.findByIdAndUpdate(id, updateData, { new: true });
 }
 
+const getUsersByRoleIdAndCollege = async (roleId, collegeCode) => {
+  return await User.find({ role: roleId, collegeCode })
+    .select('_id name email userId') 
+    .populate('department', 'name'); 
+};
+
+const getUsersByCollege = async (collegeCode) => {
+  return await User.find({ collegeCode })
+    .populate('role', '_id name')       
+    .populate('department', '_id name'); 
+}
+
+
+
 module.exports = {
   findUserByEmail,
   findUserByIdentifier,
   getUsers,
   createUser,
-  getAllUsers,
   deleteUserById,
-  updateUserById
+  updateUserById,
+  getUsersByRoleIdAndCollege,
+  getUsersByCollege
 };

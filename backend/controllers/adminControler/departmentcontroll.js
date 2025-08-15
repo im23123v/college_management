@@ -18,16 +18,22 @@ exports.addDepartment = async (req, res) => {
   }
 };
 
-exports.getAllDepartments = async (req, res) => {
+
+exports.getDepartmentsByCollegeCode = async (req, res) => {
   try {
-    const departments = await departmentQueries.getAllDepartments();
-    console.log("in department controll: ",departments);
-    res.json(departments);
-  } catch (err) {
-    console.error('Error fetching departments:', err);
-    res.status(500).json({ message: 'Server error' });
+    const { collegeCode } = req.query;
+    if (!collegeCode) {
+      return res.status(400).json({ error: "collegeCode is required" });
+    }
+
+    const departments = await departmentQueries.findDepartmentsByCollegeCode(collegeCode);
+    res.status(200).json(departments);
+  } catch (error) {
+    console.error("Error fetching departments:", error);
+    res.status(500).json({ error: "Error fetching departments" });
   }
 };
+
 
 exports.updateDepartment = async (req, res) => {
   try {

@@ -4,8 +4,14 @@ exports.createDepartment = async (data) => {
   return await Department.create(data);
 };
 
-exports.getAllDepartments = async () => {
-  return await Department.find();
+
+
+
+exports.findDepartmentsByCollegeCode = async (collegeCode) => {
+  if (!collegeCode) {
+    throw new Error("collegeCode is required");
+  }
+  return await Department.find({ collegeCode });
 };
 
 exports.findDepartmentByCode = async (code) => {

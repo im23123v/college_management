@@ -9,7 +9,8 @@ const courseController = require('../controllers/adminControler/coursecontroll')
 const leaveController = require('../controllers/adminControler/leavecontroll');
 const subjectController = require('../controllers/adminControler/subjectcontroll');
 const batchController = require('../controllers/adminControler/batchcontroll');
-
+const timetableController = require('../controllers/adminControler/timetablecontroll');
+const timetable = require('../models/timetable');
 
 // ---- ROLES ----
 router.post('/roles', roleController.createRole);
@@ -25,12 +26,12 @@ router.get('/users', userController.getAllUsers);
 
 // ---- DEPARTMENTS ----
 router.post('/departments', departmentController.addDepartment);
-router.get('/departments', departmentController.getAllDepartments);
+router.get('/departments', departmentController.getDepartmentsByCollegeCode);
 router.put('/departments/:id', departmentController.updateDepartment);   // ✅ edit
 router.delete('/departments/:id', departmentController.deleteDepartment); 
 // ---- COURSES ----
 router.post('/courses', courseController.addCourse);
-router.get('/courses', courseController.getAllCourses);
+router.get('/courses', courseController.getCoursesByCollegeCode);
 router.get('/courses/:id', courseController.getCourse); // optional
 router.put('/courses/:id', courseController.updateCourse);
 router.delete('/courses/:id', courseController.deleteCourse);
@@ -57,5 +58,16 @@ router.get('/batches', batchController.getAllBatches);
 
 router.put('/batches/:id', batchController.updateBatchById);
 router.delete('/batches/:id', batchController.deleteBatchById);
+
+
+
+
+// timetable
+
+router.post('/timetable', timetableController.createTimeTable);
+router.get('/timetable', timetableController.getTimeTable);
+router.put('/timetable/:id', timetableController.updateTimeTable);
+
+
 
 module.exports = router;
